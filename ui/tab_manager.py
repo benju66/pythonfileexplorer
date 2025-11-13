@@ -85,7 +85,7 @@ class TabManager(QTabWidget):
             self.setCurrentIndex(index)
 
             # Initialize per-tab history
-            self.history_manager.init_tab_history(index, root_path)
+            self.history_manager.init_tab_history(tab_content, root_path)
             return tab_content
         except Exception as e:
             print(f"Error creating new tab: {e}")
@@ -121,7 +121,7 @@ class TabManager(QTabWidget):
                 self.active_manager_changed.emit(self, root_path)
 
             # Initialize the history for this new tab
-            self.history_manager.init_tab_history(index, root_path)
+            self.history_manager.init_tab_history(tab_content, root_path)
 
             return tab_content
         except Exception as e:
@@ -326,7 +326,7 @@ class TabManager(QTabWidget):
         file_tree = tab_widget.findChild(FileTree)
         if file_tree:
             file_tree.set_root_directory(path)
-            self.history_manager.push_path(tab_index, path)
+            self.history_manager.push_path(tab_widget, path)
             print(f"Opened directory: {path} in tab {tab_index}")
         else:
             print("No FileTree found in the current tab.")
@@ -338,36 +338,45 @@ class TabManager(QTabWidget):
     # ------------------------------------------------------------------------
     """
     def go_back(self):
-        tab_index = self.currentIndex()
-        new_path = self.history_manager.go_back(tab_index)
+        current_widget = self.currentWidget()
+        if not current_widget:
+            return
+        new_path = self.history_manager.go_back(current_widget)
         if new_path:
-            self._set_tab_path(tab_index, new_path)
+            self._set_tab_path(current_widget, new_path)
 
     def go_forward(self):
-        tab_index = self.currentIndex()
-        new_path = self.history_manager.go_forward(tab_index)
+        current_widget = self.currentWidget()
+        if not current_widget:
+            return
+        new_path = self.history_manager.go_forward(current_widget)
         if new_path:
-            self._set_tab_path(tab_index, new_path)
+            self._set_tab_path(current_widget, new_path)
     """
 
     def go_up(self):
         """
-        Go to the parent directory of the current path, push it onto this tab’s history.
+        Go to the parent directory of the current path, push it onto this tab's history.
         """
-        tab_index = self.currentIndex()
-        new_path = self.history_manager.go_up(tab_index)
-        if new_path:
-            self._set_tab_path(tab_index, new_path)
-
-    def _set_tab_path(self, tab_index, path):
-        """
-        Update the FileTree in 'tab_index' to show 'path' WITHOUT adding a new
-        history entry (so we don't loop).
-        """
-        tab_widget = self.widget(tab_index)
-        if not tab_widget:
+        current_widget = self.currentWidget()
+        if not current_widget:
             return
-        file_tree = tab_widget.findChild(FileTree)
+        new_path = self.history_manager.go_up(current_widget)
+        if new_path:
+            self._set_tab_path(current_widget, new_path)
+
+    def _set_tab_path(self, widget, path):
+        """
+        Update the FileTree in the widget to show 'path' WITHOUT adding a new
+        history entry (so we don't loop).
+        
+        Args:
+            widget: The tab widget containing the FileTree
+            path: The path to set
+        """
+        if widget is None:
+            return
+        file_tree = widget.findChild(FileTree)
         if file_tree:
             file_tree.set_root_directory(path)
 
@@ -478,12 +487,58 @@ class TabManager(QTabWidget):
         if parent_container and hasattr(parent_container, "update_address_bar"):
             parent_container.update_address_bar(active_path)
 
+    def debug_current_tab_history(self):
+        """
+        Print debug information about the current tab's history.
+        Useful for testing and verification.
+        """
+        current_widget = self.currentWidget()
+        if not current_widget:
+            print("[DEBUG] No current tab widget found.")
+            return
+        
+        debug_info = self.history_manager.get_history_debug_info(current_widget)
+        print("\n" + "="*60)
+        print("CURRENT TAB HISTORY DEBUG")
+        print("="*60)
+        for key, value in debug_info.items():
+            print(f"  {key}: {value}")
+        print("="*60 + "\n")
+    
+    def debug_all_tabs_history(self):
+        """
+        Print debug information for all tabs' histories.
+        Useful for testing and verification.
+        """
+        print("\n" + "="*60)
+        print("ALL TABS HISTORY DEBUG")
+        print("="*60)
+        print(f"Total tabs: {self.count()}")
+        
+        for i in range(self.count()):
+            widget = self.widget(i)
+            tab_title = self.tabText(i)
+            print(f"\nTab {i}: '{tab_title}'")
+            if widget:
+                debug_info = self.history_manager.get_history_debug_info(widget)
+                print(f"  Widget ID: {debug_info.get('widget_id', 'N/A')}")
+                print(f"  Has History: {debug_info.get('has_history', False)}")
+                print(f"  Current Path: {debug_info.get('current_path', 'N/A')}")
+                print(f"  History: {debug_info.get('history', [])}")
+                print(f"  Current Index: {debug_info.get('current_index', -1)}")
+            else:
+                print("  [ERROR] Widget is None")
+        
+        print("\n" + "="*60)
+
     def close_tab(self, index):
         """
         Close the tab at the specified index, handle split view if needed,
         and remove the tab's history from the manager.
         """
-        self.history_manager.remove_tab_history(index)
+        tab_widget = self.widget(index)
+        if tab_widget:
+            self.history_manager.remove_tab_history(tab_widget)
 
         container = self.get_main_window_container()
         if not container or not hasattr(container, "dock_area"):

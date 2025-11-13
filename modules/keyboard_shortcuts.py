@@ -145,11 +145,11 @@ class KeyboardShortcuts:
         
         if current_container and hasattr(current_container, "tab_manager"):
             tab_manager = current_container.tab_manager
-            current_tab = tab_manager.currentIndex()
-            if hasattr(tab_manager.history_manager, "go_back"):
-                new_path = tab_manager.history_manager.go_back(current_tab)
+            current_widget = tab_manager.currentWidget()
+            if current_widget and hasattr(tab_manager.history_manager, "go_back"):
+                new_path = tab_manager.history_manager.go_back(current_widget)
                 if new_path:
-                    tab_manager._set_tab_path(current_tab, new_path)
+                    tab_manager._set_tab_path(current_widget, new_path)
     
     def go_forward(self):
         """Navigate forward in the current active container's tab."""
@@ -157,11 +157,11 @@ class KeyboardShortcuts:
         
         if current_container and hasattr(current_container, "tab_manager"):
             tab_manager = current_container.tab_manager
-            current_tab = tab_manager.currentIndex()
-            if hasattr(tab_manager.history_manager, "go_forward"):
-                new_path = tab_manager.history_manager.go_forward(current_tab)
+            current_widget = tab_manager.currentWidget()
+            if current_widget and hasattr(tab_manager.history_manager, "go_forward"):
+                new_path = tab_manager.history_manager.go_forward(current_widget)
                 if new_path:
-                    tab_manager._set_tab_path(current_tab, new_path)
+                    tab_manager._set_tab_path(current_widget, new_path)
     
     def go_up(self):
         """Navigate up to parent directory."""
