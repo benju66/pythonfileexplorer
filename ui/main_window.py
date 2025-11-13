@@ -193,7 +193,7 @@ class MainWindowContainer(QWidget):
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         """
-        Unified event filter to handle console drag/drop and dock separators.
+        Unified event filter to handle console drag/drop.
         
         Args:
             obj: The object that triggered the event
@@ -213,16 +213,8 @@ class MainWindowContainer(QWidget):
             elif event.type() in (QEvent.Type.ChildAdded, QEvent.Type.ChildRemoved):
                 QTimer.singleShot(100, self.update_console_panel_tracking)
 
-        # Handle dock widget edge clicks
+        # Handle dock widget events (console tracking only)
         elif isinstance(obj, QDockWidget) and event.type() == QEvent.Type.MouseButtonPress:
-            pos = event.pos()
-            width = obj.width()
-
-            # Single-click near edges -> toggle collapsed state
-            if pos.x() <= 5 or width - pos.x() <= 5:
-                self.toggle_dock_separator_state(obj)
-                return True
-                
             # Detect if panel is moved from console
             if obj in self.panels_in_console:
                 QTimer.singleShot(100, self.update_console_panel_tracking)
@@ -971,7 +963,8 @@ class MainWindowContainer(QWidget):
             dock_widget.setVisible(is_visible)
 
         # Install event handlers
-        self.install_separator_click_handlers()
+        # Separator click handlers disabled - removed edge click to collapse functionality
+        # self.install_separator_click_handlers()
 
     def connect_pinned_panel_signals(self):
         """Connect pinned panel signals for syncing across windows."""
