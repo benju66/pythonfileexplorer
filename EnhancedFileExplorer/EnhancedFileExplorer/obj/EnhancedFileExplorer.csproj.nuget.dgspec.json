@@ -1,0 +1,377 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.csproj": {}
+  },
+  "projects": {
+    "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj",
+        "projectName": "EnhancedFileExplorer.Core",
+        "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj",
+        "packagesPath": "C:\\Users\\Burness\\.nuget\\packages\\",
+        "outputPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Burness\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.205/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Infrastructure\\EnhancedFileExplorer.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Infrastructure\\EnhancedFileExplorer.Infrastructure.csproj",
+        "projectName": "EnhancedFileExplorer.Infrastructure",
+        "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Infrastructure\\EnhancedFileExplorer.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\Burness\\.nuget\\packages\\",
+        "outputPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Burness\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.205/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\EnhancedFileExplorer.Services.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\EnhancedFileExplorer.Services.csproj",
+        "projectName": "EnhancedFileExplorer.Services",
+        "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\EnhancedFileExplorer.Services.csproj",
+        "packagesPath": "C:\\Users\\Burness\\.nuget\\packages\\",
+        "outputPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Burness\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.205/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.UI\\EnhancedFileExplorer.UI.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.UI\\EnhancedFileExplorer.UI.csproj",
+        "projectName": "EnhancedFileExplorer.UI",
+        "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.UI\\EnhancedFileExplorer.UI.csproj",
+        "packagesPath": "C:\\Users\\Burness\\.nuget\\packages\\",
+        "outputPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.UI\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Burness\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0-windows"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0-windows7.0": {
+            "targetAlias": "net9.0-windows",
+            "projectReferences": {
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj"
+              },
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\EnhancedFileExplorer.Services.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\EnhancedFileExplorer.Services.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
+      },
+      "frameworks": {
+        "net9.0-windows7.0": {
+          "targetAlias": "net9.0-windows",
+          "dependencies": {
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.3.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            },
+            "Microsoft.WindowsDesktop.App.WPF": {
+              "privateAssets": "none"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.205/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.csproj",
+        "projectName": "EnhancedFileExplorer",
+        "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.csproj",
+        "packagesPath": "C:\\Users\\Burness\\.nuget\\packages\\",
+        "outputPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Burness\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0-windows"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0-windows7.0": {
+            "targetAlias": "net9.0-windows",
+            "projectReferences": {
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Core\\EnhancedFileExplorer.Core.csproj"
+              },
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Infrastructure\\EnhancedFileExplorer.Infrastructure.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Infrastructure\\EnhancedFileExplorer.Infrastructure.csproj"
+              },
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\EnhancedFileExplorer.Services.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.Services\\EnhancedFileExplorer.Services.csproj"
+              },
+              "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.UI\\EnhancedFileExplorer.UI.csproj": {
+                "projectPath": "C:\\EnhancedFileExplorer\\EnhancedFileExplorer\\EnhancedFileExplorer.UI\\EnhancedFileExplorer.UI.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
+      },
+      "frameworks": {
+        "net9.0-windows7.0": {
+          "targetAlias": "net9.0-windows",
+          "dependencies": {
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.DependencyInjection": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.Debug": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            },
+            "Microsoft.WindowsDesktop.App.WPF": {
+              "privateAssets": "none"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.205/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

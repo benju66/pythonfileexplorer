@@ -7,6 +7,8 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from ui.file_tree import FileTree
 from ui.draggable_tab_bar import DraggableTabBar
 from modules.tab_history_manager import TabHistoryManager
+from modules.widget_registry import get_widget_registry
+from modules.signal_connection_manager import get_signal_connection_manager
 
 
 class TabManager(QTabWidget):
@@ -59,6 +61,13 @@ class TabManager(QTabWidget):
 
         # Per-tab history manager
         self.history_manager = TabHistoryManager()
+        
+        # Infrastructure for drag-and-drop
+        self.widget_registry = get_widget_registry()
+        self.signal_manager = get_signal_connection_manager()
+        
+        # Store parent container reference for reliable lookup
+        self._store_parent_container_reference()
 
     def add_new_tab(self, title="New Tab", root_path=None):
         """
@@ -435,14 +444,37 @@ class TabManager(QTabWidget):
     # ------------------------------------------------------------------------
     # Utility
     # ------------------------------------------------------------------------
-    def get_main_window_container(self):
+    def _store_parent_container_reference(self):
         """
-        Find the MainWindowContainer by walking up parent widgets.
+        Store a reference to the parent MainWindowContainer in a widget property.
+        This allows reliable lookup even after widget moves during drag-and-drop.
         """
         parent = self.parentWidget()
         while parent:
-            print(f"[DEBUG] Checking parent: {type(parent)}")
             if hasattr(parent, "dock_area") or hasattr(parent, "toggle_split_view"):
+                # Found MainWindowContainer - store reference
+                self.setProperty("main_window_container", parent)
+                return
+            parent = parent.parentWidget()
+    
+    def get_main_window_container(self):
+        """
+        Find the MainWindowContainer by checking stored property first,
+        then falling back to walking up parent widgets.
+        
+        This method is robust to widget moves during drag-and-drop operations.
+        """
+        # First, check if we have a stored reference
+        stored_container = self.property("main_window_container")
+        if stored_container and hasattr(stored_container, "dock_area"):
+            return stored_container
+        
+        # Fall back to parent traversal
+        parent = self.parentWidget()
+        while parent:
+            if hasattr(parent, "dock_area") or hasattr(parent, "toggle_split_view"):
+                # Store reference for future use
+                self.setProperty("main_window_container", parent)
                 return parent
             parent = parent.parentWidget()
 
