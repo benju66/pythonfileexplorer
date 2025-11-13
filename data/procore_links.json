@@ -1,0 +1,174 @@
+{
+    "Building Connected": {
+        "_tags": [],
+        "Home": {
+            "url": "https://app.buildingconnected.com/projects/active",
+            "tags": []
+        },
+        "E25-143 - Daytons Drywall Repair": {
+            "url": "https://app.buildingconnected.com/projects/67c0a23e4b0cda005aaba17f/bid-packages",
+            "tags": []
+        }
+    },
+    "Links": {
+        "_tags": [],
+        "AIA": {
+            "url": "https://auth.aiacontracts.com/acctacd.onmicrosoft.com/b2c_1_signin/oauth2/v2.0/authorize?client_id=148e2951-493c-467e-8015-df61308b10d8&redirect_uri=https%3A%2F%2Fcontractdocs.aia.org%2Faccount%2Flandingpage&response_type=id_token&scope=openid&state=OpenIdConnect.AuthenticationProperties%3DPNemJrF4OO5yCQZldgMGGxz1BlAaje1Z9dOeaZEmltfs5xJiQt40Yaig1EvWT4Qnae5oMXzbPcnnMIAV8hLrJSDmc1ws4XK2-7P6rYPBFSL4pdIL3Z_9UErkw3mcu6ashpK9fyHSxVASz5YTh7ipreT4KWS-11TczjuDcFZPq8B_TxieHj3_4RwQ8eZGLqYi0mpWf5Vt_pE3vK0zbMC3_mrKyVxmdlVKpkAzI7nGLu0&response_mode=form_post&nonce=638755142016409746.MjE0MGJkNWMtOWJmNy00OWRiLWEwMWItZjliYjQxYjdlMjg0Y2VkMzZmZWUtMmM0Ni00Yjc2LWJmMmMtZTJjNzU5MzdkYzA3&x-client-SKU=ID_NET461&x-client-ver=5.3.0.0",
+            "tags": []
+        },
+        "DocuSign": {
+            "url": "https://account.docusign.com/oauth/auth?response_type=code&client_id=2CC56DC9-4BCD-4B55-8AB0-8BA60BAE1065&redirect_uri=https%3A%2F%2Fapp.docusign.com%2Foauth%2Fcallback&state=%7B%22_gl%22%3A%221*hg4nhr*_gcl_au*MTAyMTY1ODIzLjE3MDI0Nzg3MDc.*_ga*MTAxMDIwNjgzNi4xNzAyNDc4NzA3*_ga_1TZ7S9D6BQ*MTcwMjU5NDk4MC41LjEuMTcwMjU5NTYwOC42MC4wLjA.%22%2C%22_ga%22%3A%222.201524817.1169439479.1702592139-1010206836.1702478707%22%2C%22authTxnId%22%3A%225f8badeb-fbc0-4f6a-bb51-8416ae5925c5%22%7D",
+            "tags": []
+        },
+        "Unlock PDFs": {
+            "url": "https://smallpdf.com/unlock-pdf",
+            "tags": []
+        },
+        "MPLS Permit": {
+            "url": "https://pdx.minneapolismn.gov/Portal/Login/Index/Minneapolis-Prod",
+            "tags": []
+        }
+    },
+    "23-197 - Callaway Fire Hall": {
+        "_tags": [],
+        "Home": {
+            "url": "https://app.procore.com/2690488/project/home",
+            "tags": []
+        },
+        "Submittals": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/2690488/tools/submittals?view=list&serializer_view=minimal_list&sort%5Battribute%5D=number&sort%5Bdirection%5D=desc&per_page=150&page=1",
+            "tags": []
+        }
+    },
+    "25-105 - LaSalle Suite 1250": {
+        "_tags": [],
+        "Commitments": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3063958/tools/contracts/commitments",
+            "tags": []
+        },
+        "Drawings": {
+            "url": "https://app.procore.com/3063958/project/drawing_log/list",
+            "tags": []
+        },
+        "Home": {
+            "url": "https://app.procore.com/3063958/project/home",
+            "tags": []
+        },
+        "Change Events": {
+            "url": "https://app.procore.com/3063958/project/change_events/events?view=events",
+            "tags": []
+        },
+        "Meetings": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3063958/tools/meetings/list",
+            "tags": []
+        },
+        "Prime Contract": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3063958/tools/contracts/prime_contracts/12979197",
+            "tags": []
+        },
+        "Submittals": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3063958/tools/submittals?view=list&serializer_view=minimal_list&sort%5Battribute%5D=number&sort%5Bdirection%5D=desc&per_page=150&page=1",
+            "tags": []
+        },
+        "Budget": {
+            "url": "https://app.procore.com/projects/3063958/budgeting",
+            "tags": []
+        },
+        "Invoicing": {
+            "url": "https://app.procore.com/3063958/project/invoicing/subcontractor",
+            "tags": []
+        },
+        "RFIs": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3063958/tools/rfis?view=list&locale=en&page=1&per_page=150&sort%5Battribute%5D=position&sort%5Bdirection%5D=desc",
+            "tags": []
+        }
+    },
+    "25-112 - LaSalle 12th Floor Corridor": {
+        "_tags": [],
+        "Budget": {
+            "tags": [],
+            "url": "https://app.procore.com/projects/3085579/budgeting"
+        },
+        "Building Connected": {
+            "tags": [],
+            "url": "https://app.buildingconnected.com/projects/672be3767740a80050f061c8/bid-packages"
+        },
+        "Commitments": {
+            "tags": [],
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3085579/tools/contracts/commitments"
+        },
+        "Home": {
+            "tags": [],
+            "url": "https://app.procore.com/3085579/project/home"
+        },
+        "Prime Contracts": {
+            "tags": [],
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3085579/tools/contracts/prime_contracts"
+        }
+    },
+    "24-130 - LaSalle Repo 2": {
+        "_tags": [],
+        "Home": {
+            "url": "https://app.procore.com/2801108/project/home",
+            "tags": []
+        },
+        "Punch List": {
+            "url": "https://app.procore.com/2801108/project/punch_list/my_items_list?f%5Balii%5D%5B%5D=11477879&p=1&s=&so%5Battribute%5D=number&so%5Bdirection%5D=desc",
+            "tags": []
+        }
+    },
+    "25-107 - Suite 1200": {
+        "_tags": [],
+        "Home": {
+            "url": "https://app.procore.com/3059699/project/home",
+            "tags": []
+        },
+        "Invoicing": {
+            "tags": [],
+            "url": "https://app.procore.com/3059699/project/invoicing/subcontractor"
+        },
+        "Change Events": {
+            "url": "https://app.procore.com/3059699/project/change_events/events?view=events",
+            "tags": []
+        },
+        "Budget": {
+            "url": "https://app.procore.com/projects/3059699/budgeting",
+            "tags": []
+        }
+    },
+    "25-117 - OPIII": {
+        "_tags": [],
+        "Home": {
+            "url": "https://app.procore.com/3051002/project/home",
+            "tags": []
+        },
+        "Drawings": {
+            "url": "https://app.procore.com/3051002/project/drawing_log/list",
+            "tags": []
+        },
+        "Directory": {
+            "url": "https://app.procore.com/3051002/project/directory/groups/users?page=1&per_page=150&search=&group_by=vendor.id&sort=vendor_name%2Cname",
+            "tags": []
+        },
+        "Budget": {
+            "url": "https://app.procore.com/projects/3051002/budgeting",
+            "tags": []
+        },
+        "Commitments": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3051002/tools/contracts/commitments",
+            "tags": []
+        },
+        "Change Events": {
+            "url": "https://app.procore.com/3051002/project/change_events/events",
+            "tags": []
+        },
+        "Meetings": {
+            "url": "https://app.procore.com/webclients/host/companies/8906/projects/3051002/tools/meetings/list",
+            "tags": []
+        },
+        "Specifications": {
+            "url": "https://app.procore.com/3051002/project/specification_sections?show_revision_url=%2F3051002%2Fproject%2Fspecification_section_revisions%2F45990941%2Fview",
+            "tags": []
+        }
+    }
+}

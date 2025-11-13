@@ -1,0 +1,344 @@
+{
+    "notebooks": [
+        {
+            "title": "Projects",
+            "type": "notebook",
+            "expanded": true,
+            "created": "2025-04-28T16:25:10.442004",
+            "modified": "2025-04-28T16:25:10.442004",
+            "uuid": "nb_1745875405556",
+            "children": [
+                {
+                    "title": "25-105 - LaSalle Suite 1250",
+                    "type": "section",
+                    "expanded": false,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "03.17",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Additional TV Locations: $363.00</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Painting of existing caulking at glazing</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">CE 15 - Deduct at Office 1207, 1208</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">CE 16 - Window Film Removal</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">CE 17 - Quartz Splash</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Break metal infill: $1,185.00</li></ul></body></html>"
+                        },
+                        {
+                            "title": "Cost Changes",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Segoe UI Symbol';\">Cost Changes</span></p>\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" font-family:'Segoe UI Symbol';\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Revision 01 - Plan Update</li>\n<li style=\" font-family:'Segoe UI Symbol';\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Revision 02 - Changes to Copy Room</li>\n<li style=\" font-family:'Segoe UI Symbol';\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Revision 3 - Open area at recption and break</li>\n<li style=\" font-family:'Segoe UI Symbol';\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Revision 4 - Paint and flooring changes</li>\n<li style=\" font-family:'Segoe UI Symbol';\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Revision 5 - light changes at confrences rooms and rebuild full wall</li>\n<li style=\" font-family:'Segoe UI Symbol';\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></li></ul>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Segoe UI Symbol';\">Eyebrow at exterior walls - slots </span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Segoe UI Symbol';\"><br /></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">$56.00</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">$44.80</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">$11.20</li></ul></body></html>"
+                        },
+                        {
+                            "title": "03.31",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">8 pendants - $500.00 each</p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">28 globe pendants - no allownace</p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">3 Owner supplied pendants</p></body></html>"
+                        }
+                    ]
+                },
+                {
+                    "title": "Image Studios",
+                    "type": "section",
+                    "expanded": false,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "Notes",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">\t</p>\n<ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 008 - Temp Heating for RTU Replacment</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 018 - Drywall and Framing Changes</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 020 - Relocated Recpetacle, Power for ADA, Sign Contoler</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 021 - Gas and Vent Creditm Additional Plumbing\n<ol type=\"a\" style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:25px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">$8524.</li></ol></li></ol>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"
+                        },
+                        {
+                            "title": "PCOs",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 008 - Temp Heating for RTU Replacment</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 018 - Drywall and Framing Changes</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 020 - Relocated Recpetacle, Power for ADA, Sign Contoler</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PCO 021 - Gas and Vent Creditm Additional Plumbing\n<ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:23px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">No direct number for spcing between sink and wall. Middle studios excpet 108 and 107</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:23px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Exterior studios, some are tight, some are not\n<ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:39px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">Every studio with in 12&quot; slam it tight to the wall</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:39px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">Once cabinets arrived moved them back to location on plans (liked the 6&quot;)</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:39px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">Added 45 to plumbing to relocate </li></ol></li></ol></li></ol></body></html>"
+                        },
+                        {
+                            "title": "125",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">852\n<ol type=\"a\" style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:25px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">ASDFDF\n<ul type=\"square\" style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 5;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:65px; margin-right:0px; -qt-block-indent:10; text-indent:0px;\">\t</li></ul></li></ol></li></ol></body></html>"
+                        },
+                        {
+                            "title": "Testing",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">ABCD</li></ol></body></html>"
+                        }
+                    ]
+                },
+                {
+                    "title": "23-197 - Callaway Fire Hall",
+                    "type": "section",
+                    "expanded": false,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "2025.03.05",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:24:07.511796",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:11pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:9pt;\">2025.03.05</span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:9pt;\"><br /></p>\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" font-size:9pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Doors Issuess\n<ol type=\"a\" style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" font-size:9pt;\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:55px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></li></ol></li></ul></body></html>"
+                        },
+                        {
+                            "title": "2025.03.19",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">PR-08 - 111A\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:80px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">Declined to procced with PR-08</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:80px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">Door had been sent to site -  revised door that changed via the attached email from July 17th</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:80px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">No credit becuase original door was already ordered.</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:80px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">Original hardware - Classroom</li></ul></li></ul></body></html>"
+                        },
+                        {
+                            "title": "Test",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">TEst\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">TEst\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:30px; margin-right:0px; -qt-block-indent:1; text-indent:0px;\">TEst\t\t</li></ul></li></ul></li></ul>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"
+                        }
+                    ]
+                },
+                {
+                    "title": "25-117 - OPIII",
+                    "type": "section",
+                    "expanded": true,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "Notes",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-11-13T09:57:19.362699",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:11pt; font-weight:400; font-style:normal;\">\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" font-size:9pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">She may be looking to pull out some cost like fee or GC's to not have to pay builders risk insurance, but that would be up to her what she would want to present to the insurance company.</li>\n<li style=\" font-size:9pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">When we've gotten builders risk, it's typically the full value of our contract</li></ul></body></html>"
+                        },
+                        {
+                            "title": "Structural Meeting",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">2025.03.17</p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">CMU foundation Wall? Stay with cast in place? Price the option for CMU</li>\n<li style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></li></ul></body></html>"
+                        },
+                        {
+                            "title": "OAC",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Test \n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">\t\t\t</li></ul></li></ul></body></html>"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Unit Pricing and Lessons Learned",
+            "type": "notebook",
+            "expanded": true,
+            "created": "2025-04-28T16:25:10.442004",
+            "modified": "2025-04-28T16:25:10.442004",
+            "uuid": "nb_1745875405556",
+            "children": [
+                {
+                    "title": "Division 03",
+                    "type": "section",
+                    "expanded": true,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "Concrete",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Polished Concrete - $4.75 per SF</p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"
+                        }
+                    ]
+                },
+                {
+                    "title": "Division 9",
+                    "type": "section",
+                    "expanded": true,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "Drywall",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-11-13T09:57:17.721644",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:11pt; font-weight:400; font-style:normal;\">\n<table border=\"1\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; border-collapse:collapse;\" cellspacing=\"2\" cellpadding=\"4\">\n<tr>\n<td></td>\n<td></td>\n<td></td></tr>\n<tr>\n<td></td>\n<td></td>\n<td></td></tr></table></body></html>"
+                        },
+                        {
+                            "title": "Untitled Page",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:25:10.442004",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Level 5 Finish</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">New Walls: $1.30 / SF</li>\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Existing Walls $2.50 / SF</li></ul></body></html>"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Other",
+            "type": "notebook",
+            "expanded": true,
+            "created": "2025-04-28T16:25:10.442004",
+            "modified": "2025-04-28T16:25:10.442004",
+            "uuid": "nb_1745875405556",
+            "children": [
+                {
+                    "title": "App",
+                    "type": "section",
+                    "expanded": true,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "Test",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-05-01T15:08:06.179283",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:11pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:68px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">tree /F &gt; structure.txt</p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:68px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Forecasting and Cost",
+            "type": "notebook",
+            "expanded": true,
+            "created": "2025-04-28T16:25:10.442004",
+            "modified": "2025-04-28T16:25:10.442004",
+            "uuid": "nb_1745875405556",
+            "children": [
+                {
+                    "title": "Common Cost Codes",
+                    "type": "section",
+                    "expanded": true,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875405556",
+                    "children": [
+                        {
+                            "title": "Common Cost Codes",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:25:10.442004",
+                            "modified": "2025-04-28T16:24:39.212804",
+                            "uuid": "p_1745875405556",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:11pt; font-weight:400; font-style:normal;\">\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:20px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:9pt;\"><br /></p></body></html>"
+                        }
+                    ]
+                },
+                {
+                    "title": "Test",
+                    "type": "section",
+                    "expanded": true,
+                    "created": "2025-04-28T16:24:44.636063",
+                    "modified": "2025-04-28T16:24:44.636063",
+                    "uuid": "s_1745875484636",
+                    "children": [
+                        {
+                            "title": "Untitled Page",
+                            "type": "page",
+                            "expanded": false,
+                            "created": "2025-04-28T16:24:44.636063",
+                            "modified": "2025-04-28T16:26:28.226107",
+                            "uuid": "p_1745875484636",
+                            "children": [],
+                            "content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Segoe UI'; font-size:11pt; font-weight:400; font-style:normal;\">\n<ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 0;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">adfadf\n<ul type=\"circle\" style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\">\n<li style=\" margin-top:0px; margin-bottom:0px; margin-left:15px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">\t\t\t</li></ul></li></ol></body></html>"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Quick Notes",
+            "type": "notebook",
+            "expanded": true,
+            "created": "2025-04-28T16:25:10.442004",
+            "modified": "2025-04-28T16:25:10.442004",
+            "uuid": "n_1745875510442",
+            "children": [
+                {
+                    "title": "Unfiled Notes",
+                    "type": "section",
+                    "expanded": false,
+                    "created": "2025-04-28T16:25:10.442004",
+                    "modified": "2025-04-28T16:25:10.442004",
+                    "uuid": "s_1745875510442",
+                    "children": []
+                }
+            ]
+        }
+    ],
+    "version": "2.0"
+}

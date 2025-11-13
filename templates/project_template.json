@@ -1,0 +1,95 @@
+{
+    "Project Folder Template": {
+        "Architect Engineer": {
+            "Correspondence": {},
+            "Reports": {}
+        },
+        "Billing": {},
+        "Budgets": {
+            "Bid Packages": {},
+            "Estimates": {},
+            "Proposal": {},
+            "Quotes": {},
+            "Scopes": {}
+        },
+        "Closeouts": {
+            "1 - Table of Contents": {},
+            "2 - Project Directory": {},
+            "3 - Permit - Building": {},
+            "4 - GC Warranty": {},
+            "5 - Trade Partner Warranties": {},
+            "6 - Product Data": {},
+            "7 - As-Builts": {},
+            "8 - T&B Reports": {},
+            "Sub Affidavit and Waiver": {},
+            "Warranties & OM Manual": {},
+            "_Certificate of Occupancy": {}
+        },
+        "Development": {},
+        "Insurance": {},
+        "Notes and Communication": {},
+        "Owner": {
+            "CE Log": {},
+            "Contracts & Exhibits": {
+                "Exhibits": {}
+            },
+            "PCCOs": {
+                "Change Orders": {},
+                "Change Requests": {}
+            }
+        },
+        "P & L": {},
+        "Permitting": {
+            "City": {},
+            "NPDES": {},
+            "SAC": {},
+            "State": {}
+        },
+        "Photos": {},
+        "Plans & Specs": {
+            "Geotech": {},
+            "Plans": {},
+            "Specs": {}
+        },
+        "Quality": {},
+        "Safety": {
+            "Daily Safety Meetings": {},
+            "Incidents": {},
+            "Safety Audits": {},
+            "Site Specific Safety Plan": {}
+        },
+        "Schedules": {
+            "Look Ahead Schedules": {},
+            "Schedules": {}
+        },
+        "Submittals": {},
+        "Subs and Suppliers": {
+            "000000 Description - Vendor": {
+                "Pay Application": {},
+                "Quotes": {},
+                "Subcontracts and Exhibits": {}
+            },
+            "024100 Demolition - Name": {
+                "Pay Application": {},
+                "Quotes": {},
+                "Subcontracts and Exhibits": {}
+            },
+            "029005 Final Cleaning - Name": {
+                "Pay Application": {},
+                "Subcontracts and Exhibits": {}
+            },
+            "029200 Survey - Name": {
+                "Pay Application": {},
+                "Subcontracts and Exhibits": {}
+            },
+            "030000 Concrete - Name": {
+                "Pay Application": {},
+                "RFI Request for Information": {}
+            },
+            "_Contract Templates": {
+                "PO": {},
+                "Subcontract": {}
+            }
+        }
+    }
+}

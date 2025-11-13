@@ -1,0 +1,691 @@
+{
+    "My Day": {
+        "expanded": true,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": []
+    },
+    "23-197 - Callaway": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": [
+            {
+                "text": "Change Orders for Greens",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Auto Opperator",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Gutters",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Spice for FRP",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "PR-08",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Fire Barrieir Work Pricing",
+                "done": false,
+                "expanded": false,
+                "due": "2025-03-24",
+                "priority": "High",
+                "children": []
+            }
+        ]
+    },
+    "24-130 - LaSalle Repo 2": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": [
+            {
+                "text": "O&M Manuals",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "Medium",
+                "children": []
+            },
+            {
+                "text": "Paint ceiling at elevator lobby",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            }
+        ]
+    },
+    "24-154 - Image Studios": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": [
+            {
+                "text": "Appliance Connection Change Order",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            }
+        ]
+    },
+    "25-105 - Suite 1250": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": [
+            {
+                "text": "Break metal infill",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Lighting updates - More light",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Front Desk Laminate",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Water Line For Coffee",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Additional Globe Lights",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Window Film Removal",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Blocking for casework at break area",
+                "done": true,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            }
+        ]
+    },
+    "25-112 - 12th Floor Corridor": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": [
+            {
+                "text": "Update Budget",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            }
+        ]
+    },
+    "25-117 - OCP III": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": [
+            {
+                "text": "Trailer Pricing",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Toilets Pricing",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Security Camera Pricing",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Xcel Permit",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Gas Permit",
+                "done": false,
+                "expanded": false,
+                "due": "2025-04-08",
+                "priority": "Medium",
+                "children": []
+            }
+        ]
+    },
+    "Development": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": [
+            {
+                "text": "Bugs",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": [
+                    {
+                        "text": "Split view",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "text": "Features to add",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": [
+                    {
+                        "text": "Add spell check",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Advanced Search with Folder Selection",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "AI-Powered File Search Assistant",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "canned/tempalte emails and email lsit",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Categories & Tags for Files",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Folder Size Calculation in File Tree",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Hotkeys",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Open Different Apps from Toolbar",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Template-Based Auto-Folder Creation",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Trash Bin Integration (Temporary Delete)",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "text": "General",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": [
+                    {
+                        "text": "Add Mouse click scroll",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Advanced Dividers System?",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Bulk Select",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Bulk Select",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Conenct to Phone",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Dashboard?",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Handle emails",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Mouse button click scroll left/right",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Power Automate?",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Text that fades the less it's used for folders",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Undo/redo",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "text": "HotKeys",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": [
+                    {
+                        "text": "Button + Click to expand all items in a selected folder",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Preview PDF",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "text": "Improve Split view",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Imrove PDF Preview less blurry image",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            },
+            {
+                "text": "Panels",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": [
+                    {
+                        "text": "Abbility to redock all panels at original locations",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Add expand function when outside of main app (dedocked)",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Connect multiple panels together",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "CRM",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Drag and drop items in pinned panel",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Drag items into pinned panel",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Independent of minimizing main app",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "OneNote - Splitter between pages list and text edit area",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Overdue always pinned to the top",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Procore Links - SHow Context Menu fix",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Slide out from main window on right for onenote",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "To-Do - add notes icon to todo items",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "To-Do - Sort all items even if clicked on a single item",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "To-do - When starting to type defuatl to quick add text",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "To-do do mirrored items break after sort?",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Update Overdue / Today Category to show count",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "To-Do - Add buttons like in Procore links",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Hide center widget",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Open panels in different window",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "Split panels in window",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    },
+                    {
+                        "text": "OneNote - Drag and drop sections, pages, notebooks",
+                        "done": false,
+                        "expanded": false,
+                        "due": "",
+                        "priority": "",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "text": "Hover to see notes, right click to add notes, Notes column",
+                "done": false,
+                "expanded": false,
+                "due": "",
+                "priority": "",
+                "children": []
+            }
+        ]
+    },
+    "Estimates": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": []
+    },
+    "LaSalle Elevator Update Pricing": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": []
+    },
+    "Traction": {
+        "expanded": false,
+        "done": false,
+        "due": "",
+        "priority": "",
+        "items": []
+    }
+}

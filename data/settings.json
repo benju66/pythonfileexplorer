@@ -1,0 +1,21 @@
+{
+    "theme": "dark",
+    "last_opened_directory": "C:/Users/Burness/OneDrive - Fendler Patterson Construction, Inc",
+    "dockable_panels": {
+        "pinned_panel": true,
+        "recent_items_panel": false,
+        "preview_panel": false,
+        "details_panel": false,
+        "templates_panel": false,
+        "procore_panel": false,
+        "bookmarks_panel": false,
+        "to_do_panel": false,
+        "one_note_panel": false
+    },
+    "ui_preferences": {
+        "Enable Dark Mode": true,
+        "Show Address Bar": true
+    },
+    "window_geometry_b64": "AdnQywADAAAAAAD8AAAApAAABkYAAAPKAAAA/AAAAMMAAAZGAAADygAAAAAAAAAAB4AAAAD8AAAAwwAABkYAAAPK",
+    "window_state_b64": "AAAA/wAAAAD9AAAAAAAABUsAAAMIAAAABAAAAAQAAAAIAAAACPwAAAAA"
+}
