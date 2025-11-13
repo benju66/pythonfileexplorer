@@ -37,6 +37,16 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# C# / .NET
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+*.cache
+*.sourcelink.json
+apphost.exe
+
 # Project specific
 *.log
 todo_backups/
