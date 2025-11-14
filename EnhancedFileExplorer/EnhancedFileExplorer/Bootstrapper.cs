@@ -33,6 +33,7 @@ public static class Bootstrapper
 
         // Infrastructure
         services.AddSingleton<IEventAggregator, EventAggregator>();
+        services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddScoped<IFileSystemService, FileSystemService>();
 
         // Services
