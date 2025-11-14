@@ -156,18 +156,18 @@ public partial class FileTreeView : UserControl
             {
                 parentItem.Items.Clear();
                 
-                // Only show directories in the tree (files are shown in the main list view)
-                // If you want to show files too, remove the Where clause
-                var directories = items.Where(i => i.IsDirectory).OrderBy(i => i.Name);
+                // Show both directories and files in the tree
+                // Sort: directories first, then files, both alphabetically
+                var sortedItems = items.OrderBy(i => i.IsDirectory ? 0 : 1).ThenBy(i => i.Name);
                 
-                foreach (var item in directories)
+                foreach (var item in sortedItems)
                 {
                     var treeItem = CreateTreeViewItem(item);
                     parentItem.Items.Add(treeItem);
                 }
 
                 // If no children, add a message
-                if (!directories.Any())
+                if (!sortedItems.Any())
                 {
                     var emptyItem = new TreeViewItem { Header = "(empty)", IsEnabled = false };
                     parentItem.Items.Add(emptyItem);

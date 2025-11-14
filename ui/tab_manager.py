@@ -4,8 +4,9 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, QToolButton, QMainWindow
 )
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
 from ui.file_tree import FileTree
-from ui.draggable_tab_bar import DraggableTabBar
+from ui.draggable_tab_bar import DraggableTabBar, TAB_WIDGET_MIME_TYPE
 from modules.tab_history_manager import TabHistoryManager
 from modules.widget_registry import get_widget_registry
 from modules.signal_connection_manager import get_signal_connection_manager
@@ -22,6 +23,13 @@ class TabManager(QTabWidget):
         self.setTabBar(DraggableTabBar(self))
         # --------------------------------------------------------------------
 
+        # Enable drag-and-drop for accepting drops
+        self.setAcceptDrops(True)
+        
+        # Note: setMovable(True) is NOT enabled here to avoid conflicts
+        # with our custom drag-and-drop. Reordering within same widget will
+        # be handled by our drop handler in Phase 3/4.
+        
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.close_tab)
 
@@ -95,6 +103,10 @@ class TabManager(QTabWidget):
 
             # Initialize per-tab history
             self.history_manager.init_tab_history(tab_content, root_path)
+            
+            # Register widget for drag-and-drop infrastructure
+            self._register_tab_widget(tab_content, file_tree)
+            
             return tab_content
         except Exception as e:
             print(f"Error creating new tab: {e}")
@@ -131,6 +143,9 @@ class TabManager(QTabWidget):
 
             # Initialize the history for this new tab
             self.history_manager.init_tab_history(tab_content, root_path)
+            
+            # Register widget for drag-and-drop infrastructure
+            self._register_tab_widget(tab_content, file_tree)
 
             return tab_content
         except Exception as e:
@@ -442,6 +457,68 @@ class TabManager(QTabWidget):
                     print(f"Refreshed tab at index {index} with directory: {current_directory}")
 
     # ------------------------------------------------------------------------
+    # Drag-and-Drop Infrastructure
+    # ------------------------------------------------------------------------
+    def _register_tab_widget(self, tab_widget: QWidget, file_tree: FileTree):
+        """
+        Register a tab widget and its FileTree for drag-and-drop infrastructure.
+        
+        This method:
+        1. Registers the widget in the widget registry
+        2. Registers signal connections in the signal manager
+        3. Stores parent container reference in the widget
+        
+        Args:
+            tab_widget: The tab widget (container for FileTree)
+            file_tree: The FileTree widget within the tab
+        """
+        if tab_widget is None or file_tree is None:
+            return
+        
+        # Get parent container
+        container = self.get_main_window_container()
+        if container is None:
+            print("[WARNING] Could not find parent container for widget registration")
+            return
+        
+        # Register widget in widget registry
+        self.widget_registry.register_widget(tab_widget, self)
+        
+        # Store parent container reference in widget property
+        tab_widget.setProperty("main_window_container", container)
+        
+        # Register signal connections
+        # FileTree -> TabManager signals
+        self.signal_manager.register_connection(
+            widget=tab_widget,
+            source=file_tree,
+            signal_name="file_tree_clicked",
+            target=self,
+            slot=self.handle_file_tree_clicked
+        )
+        
+        self.signal_manager.register_connection(
+            widget=tab_widget,
+            source=file_tree,
+            signal_name="context_menu_action_triggered",
+            target=self,
+            slot=self.handle_context_menu_action
+        )
+        
+        # FileTree -> MainWindowContainer signals
+        self.signal_manager.register_connection(
+            widget=tab_widget,
+            source=file_tree,
+            signal_name="location_changed",
+            target=container,
+            slot=container.update_address_bar
+        )
+        
+        # TabManager -> MainWindowContainer signals (registered once per TabManager)
+        # These are already connected in MainWindowContainer.__init__, but we track them
+        # for potential reconnection if TabManager moves
+        
+    # ------------------------------------------------------------------------
     # Utility
     # ------------------------------------------------------------------------
     def _store_parent_container_reference(self):
@@ -570,6 +647,11 @@ class TabManager(QTabWidget):
         """
         tab_widget = self.widget(index)
         if tab_widget:
+            # Unregister widget from drag-and-drop infrastructure
+            self.widget_registry.unregister_widget(tab_widget)
+            self.signal_manager.unregister_widget(tab_widget)
+            
+            # Remove history
             self.history_manager.remove_tab_history(tab_widget)
 
         container = self.get_main_window_container()
@@ -609,3 +691,216 @@ class TabManager(QTabWidget):
                 self.reset_split_view()
 
         print(f"✅ Closed tab at index {index}")
+    
+    # ------------------------------------------------------------------------
+    # Drag-and-Drop Event Handlers (Phase 3: Same Widget Drops)
+    # ------------------------------------------------------------------------
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        """
+        Handle drag enter event to accept tab widget drags.
+        
+        Args:
+            event: QDragEnterEvent
+        """
+        if event.mimeData().hasFormat(TAB_WIDGET_MIME_TYPE):
+            # Check if this is a tab widget drag
+            widget_id_str = event.mimeData().data(TAB_WIDGET_MIME_TYPE).data().decode('utf-8')
+            try:
+                widget_id = int(widget_id_str)
+                widget = self.widget_registry.get_widget(widget_id)
+                
+                if widget:
+                    # Accept the drag
+                    event.acceptProposedAction()
+                    return
+            except (ValueError, TypeError):
+                pass
+        
+        # Let parent handle other drag types (files, etc.)
+        super().dragEnterEvent(event)
+    
+    def dragMoveEvent(self, event: QDragMoveEvent):
+        """
+        Handle drag move event to provide visual feedback.
+        
+        Args:
+            event: QDragMoveEvent
+        """
+        if event.mimeData().hasFormat(TAB_WIDGET_MIME_TYPE):
+            # Accept tab widget drags
+            event.acceptProposedAction()
+            return
+        
+        # Let parent handle other drag types
+        super().dragMoveEvent(event)
+    
+    def dropEvent(self, event: QDropEvent):
+        """
+        Handle drop event for tab widgets.
+        
+        This handles drops within the same TabManager (reordering)
+        and drops from other TabManagers (will be handled in Phase 4).
+        
+        Args:
+            event: QDropEvent
+        """
+        if not event.mimeData().hasFormat(TAB_WIDGET_MIME_TYPE):
+            # Not a tab widget drag - let parent handle it
+            super().dropEvent(event)
+            return
+        
+        try:
+            # Reset tab bar indicator
+            tab_bar = self.tabBar()
+            if hasattr(tab_bar, 'drop_indicator_pos'):
+                tab_bar.drop_indicator_pos = -1
+                tab_bar.drop_indicator_index = -1
+                tab_bar.update()
+            
+            # Get widget ID from MIME data
+            widget_id_str = event.mimeData().data(TAB_WIDGET_MIME_TYPE).data().decode('utf-8')
+            try:
+                widget_id = int(widget_id_str)
+            except (ValueError, TypeError):
+                print("[ERROR] Invalid widget ID in MIME data")
+                event.ignore()
+                return
+            
+            # Look up widget in registry
+            widget = self.widget_registry.get_widget(widget_id)
+            if widget is None:
+                print(f"[ERROR] Widget {widget_id} not found in registry")
+                event.ignore()
+                return
+            
+            # Get source tab widget
+            source_tab_widget = self.widget_registry.get_parent_tab_widget(widget)
+            if source_tab_widget is None:
+                print(f"[ERROR] Source tab widget not found for widget {widget_id}")
+                event.ignore()
+                return
+            
+            # Check if drop is within same widget (Phase 3: Same Widget)
+            if source_tab_widget == self:
+                # Same widget - handle reordering
+                self._handle_same_widget_drop(widget, event)
+                event.acceptProposedAction()
+            else:
+                # Different widget - will be handled in Phase 4
+                # For now, ignore it
+                print(f"[DEBUG] Drop from different widget - will be handled in Phase 4")
+                event.ignore()
+                return
+                
+        except Exception as e:
+            print(f"[ERROR] Error in dropEvent: {e}")
+            import traceback
+            traceback.print_exc()
+            event.ignore()
+    
+    def _handle_same_widget_drop(self, widget: QWidget, event: QDropEvent):
+        """
+        Handle drop within the same TabManager (reordering).
+        
+        This method:
+        1. Finds the current index of the widget
+        2. Determines the target index based on drop position
+        3. Moves the tab to the new position
+        
+        Args:
+            widget: The widget being dropped
+            event: QDropEvent
+        """
+        try:
+            # Find current index of widget
+            current_index = self.indexOf(widget)
+            if current_index < 0:
+                print(f"[ERROR] Widget not found in this TabManager")
+                return
+            
+            # Get tab bar
+            tab_bar = self.tabBar()
+            
+            # Get target index from tab bar's drop indicator
+            # The tab bar calculates this in _update_drop_indicator during dragMoveEvent
+            if hasattr(tab_bar, 'drop_indicator_index') and tab_bar.drop_indicator_index >= 0:
+                target_index = tab_bar.drop_indicator_index
+                print(f"[DEBUG] Using drop_indicator_index: {target_index}")
+            else:
+                # Fallback: calculate from event position
+                # Event position is relative to this widget (TabManager)
+                drop_pos = event.pos() if hasattr(event, 'pos') else event.position().toPoint()
+                print(f"[DEBUG] Drop position (TabManager coords): {drop_pos}")
+                
+                # Map position to tab bar coordinates
+                tab_bar_pos = self.mapTo(tab_bar, drop_pos)
+                print(f"[DEBUG] Tab bar position: {tab_bar_pos}")
+                target_index = tab_bar.tabAt(tab_bar_pos)
+                print(f"[DEBUG] Tab at position: {target_index}")
+                
+                if target_index < 0:
+                    # Determine position based on x coordinate
+                    tab_bar_rect = tab_bar.rect()
+                    if tab_bar_pos.x() < tab_bar_rect.width() / 2:
+                        target_index = 0
+                    else:
+                        target_index = self.count()
+                    print(f"[DEBUG] No tab at position, using: {target_index}")
+                else:
+                    # Determine if before or after tab
+                    tab_rect = tab_bar.tabRect(target_index)
+                    tab_center_x = tab_rect.center().x()
+                    if tab_bar_pos.x() < tab_center_x:
+                        # Before tab
+                        target_index = target_index
+                    else:
+                        # After tab
+                        target_index = target_index + 1
+                    print(f"[DEBUG] Tab found, adjusted index: {target_index}")
+            
+            # Ensure target_index is valid
+            if target_index < 0:
+                target_index = 0
+            if target_index > self.count():
+                target_index = self.count()
+            
+            # If dropped on same position, do nothing
+            if target_index == current_index:
+                print(f"[DEBUG] Tab dropped on same position - no change needed")
+                return
+            
+            # Get tab title and icon before moving
+            tab_title = self.tabText(current_index)
+            tab_icon = self.tabIcon(current_index)
+            
+            # Remove widget from current position
+            self.removeTab(current_index)
+            
+            # Adjust target_index if we removed a tab before it
+            if target_index > current_index:
+                target_index -= 1
+            
+            # Ensure target_index is still valid after removal
+            if target_index < 0:
+                target_index = 0
+            if target_index > self.count():
+                target_index = self.count()
+            
+            # Insert widget at new position
+            self.insertTab(target_index, widget, tab_title)
+            if not tab_icon.isNull():
+                self.setTabIcon(target_index, tab_icon)
+            
+            # Set as active tab
+            self.setCurrentIndex(target_index)
+            
+            print(f"[DEBUG] Tab reordered from index {current_index} to {target_index}")
+            
+            # No signal reconnection needed (same parent)
+            # No history migration needed (same widget)
+            
+        except Exception as e:
+            print(f"[ERROR] Error in _handle_same_widget_drop: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
