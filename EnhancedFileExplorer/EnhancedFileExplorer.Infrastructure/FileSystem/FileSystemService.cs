@@ -1,3 +1,4 @@
+using System.IO;
 using EnhancedFileExplorer.Core.Interfaces;
 using EnhancedFileExplorer.Core.Models;
 using Microsoft.Extensions.Logging;

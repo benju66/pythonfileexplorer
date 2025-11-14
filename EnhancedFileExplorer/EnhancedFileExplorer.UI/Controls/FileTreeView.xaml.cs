@@ -20,6 +20,7 @@ public partial class FileTreeView : UserControl
     private ILogger<FileTreeView>? _logger;
     private IContextMenuProvider? _contextMenuProvider;
     private ContextMenuBuilder? _contextMenuBuilder;
+    private IIconService? _iconService;
     private string _currentPath = string.Empty;
 
     public event EventHandler<string>? PathSelected;
@@ -34,12 +35,14 @@ public partial class FileTreeView : UserControl
         IFileSystemService fileSystemService, 
         ILogger<FileTreeView>? logger = null,
         IContextMenuProvider? contextMenuProvider = null,
-        ContextMenuBuilder? contextMenuBuilder = null)
+        ContextMenuBuilder? contextMenuBuilder = null,
+        IIconService? iconService = null)
     {
         _fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
         _logger = logger;
         _contextMenuProvider = contextMenuProvider;
         _contextMenuBuilder = contextMenuBuilder;
+        _iconService = iconService;
     }
 
     public string CurrentPath
@@ -128,9 +131,11 @@ public partial class FileTreeView : UserControl
         {
             Width = 16,
             Height = 16,
-            Source = GetIconForItem(item),
             Margin = new Thickness(0, 0, 5, 0)
         };
+        
+        // Load icon asynchronously
+        LoadIconAsync(item, icon);
         panel.Children.Add(icon);
 
         // Name
@@ -140,11 +145,26 @@ public partial class FileTreeView : UserControl
         return panel;
     }
 
-    private BitmapImage? GetIconForItem(FileSystemItem item)
+    private async void LoadIconAsync(FileSystemItem item, Image icon)
     {
-        // TODO: Implement proper icon extraction using Windows Shell
-        // For now, return null (no icon)
-        return null;
+        if (_iconService == null)
+            return;
+
+        try
+        {
+            var iconSource = await _iconService.GetIconAsync(item.Path, item.IsDirectory);
+            if (iconSource is ImageSource imageSource)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    icon.Source = imageSource;
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to load icon for: {Path}", item.Path);
+        }
     }
 
     private async Task LoadDirectoryChildrenAsync(TreeViewItem parentItem, string path)
