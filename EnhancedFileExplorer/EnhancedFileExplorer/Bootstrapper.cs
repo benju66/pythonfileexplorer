@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using EnhancedFileExplorer.Core.Interfaces;
 using EnhancedFileExplorer.Infrastructure.FileSystem;
 using EnhancedFileExplorer.Infrastructure.Events;
+using EnhancedFileExplorer.Infrastructure.Icon;
+using EnhancedFileExplorer.Infrastructure.FileSystemWatcher;
 using EnhancedFileExplorer.Services.FileOperations;
 using EnhancedFileExplorer.Services.UndoRedo;
 using EnhancedFileExplorer.Services.Navigation;
@@ -34,6 +36,8 @@ public static class Bootstrapper
         // Infrastructure
         services.AddSingleton<IEventAggregator, EventAggregator>();
         services.AddSingleton<IClipboardService, ClipboardService>();
+        services.AddSingleton<IIconService, IconService>();
+        services.AddSingleton<IFileSystemWatcherService, FileSystemWatcherService>();
         services.AddScoped<IFileSystemService, FileSystemService>();
 
         // Services

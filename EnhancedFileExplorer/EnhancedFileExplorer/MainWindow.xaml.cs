@@ -18,17 +18,19 @@ public partial class MainWindow : Window
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainWindow> _logger;
-    private readonly ITabManagerService _tabManagerService;
-    private readonly IUndoRedoManager _undoRedoManager;
-    private readonly IFileSystemService _fileSystemService;
+        private readonly ITabManagerService _tabManagerService;
+        private readonly IUndoRedoManager _undoRedoManager;
+        private readonly IFileSystemService _fileSystemService;
+        private readonly IFileSystemWatcherService _fileSystemWatcherService;
 
     public MainWindow(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _logger = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
-        _tabManagerService = serviceProvider.GetRequiredService<ITabManagerService>();
-        _undoRedoManager = serviceProvider.GetRequiredService<IUndoRedoManager>();
-        _fileSystemService = serviceProvider.GetRequiredService<IFileSystemService>();
+            _tabManagerService = serviceProvider.GetRequiredService<ITabManagerService>();
+            _undoRedoManager = serviceProvider.GetRequiredService<IUndoRedoManager>();
+            _fileSystemService = serviceProvider.GetRequiredService<IFileSystemService>();
+            _fileSystemWatcherService = serviceProvider.GetRequiredService<IFileSystemWatcherService>();
 
         InitializeComponent();
 
@@ -39,6 +41,43 @@ public partial class MainWindow : Window
         _tabManagerService.ActiveTabChanged += OnActiveTabChanged;
         _tabManagerService.TabCreated += OnTabCreated;
         _tabManagerService.TabClosed += OnTabClosed;
+        
+        // Subscribe to file system watcher events
+        _fileSystemWatcherService.Created += OnFileSystemChanged;
+        _fileSystemWatcherService.Deleted += OnFileSystemChanged;
+        _fileSystemWatcherService.Renamed += OnFileSystemRenamed;
+        _fileSystemWatcherService.Changed += OnFileSystemChanged;
+        
+        // Start watching the initial directory when a tab is created
+        _tabManagerService.TabCreated += (s, e) =>
+        {
+            if (e.Tab.CurrentPath != null)
+            {
+                StartWatchingDirectory(e.Tab.CurrentPath);
+            }
+        };
+        
+        // Stop watching when a tab is closed
+        _tabManagerService.TabClosed += (s, e) =>
+        {
+            if (e.Tab.CurrentPath != null)
+            {
+                StopWatchingDirectory(e.Tab.CurrentPath);
+            }
+        };
+        
+        // Update watcher when active tab changes
+        _tabManagerService.ActiveTabChanged += (s, e) =>
+        {
+            if (e.PreviousTab?.CurrentPath != null)
+            {
+                StopWatchingDirectory(e.PreviousTab.CurrentPath);
+            }
+            if (e.CurrentTab?.CurrentPath != null)
+            {
+                StartWatchingDirectory(e.CurrentTab.CurrentPath);
+            }
+        };
 
         // Create initial tab
         Loaded += async (s, e) =>
@@ -165,7 +204,8 @@ public partial class MainWindow : Window
             _fileSystemService,
             _serviceProvider.GetService<ILogger<FileTreeView>>(),
             _serviceProvider.GetRequiredService<IContextMenuProvider>(),
-            _serviceProvider.GetRequiredService<ContextMenuBuilder>());
+            _serviceProvider.GetRequiredService<ContextMenuBuilder>(),
+            _serviceProvider.GetService<IIconService>());
         
         fileTreeView.PathDoubleClicked += async (s, path) =>
         {
@@ -386,15 +426,35 @@ public partial class MainWindow : Window
             return;
 
         // Refresh the tree view if the operation affects the current directory
+        RefreshTreeViewIfNeeded(e.ParentPath);
+    }
+
+    private void OnFileSystemChanged(object? sender, FileSystemChangedEventArgs e)
+    {
+        // Debounce: Only refresh if the change affects the current directory
+        RefreshTreeViewIfNeeded(e.FullPath != null ? System.IO.Path.GetDirectoryName(e.FullPath) : null);
+    }
+
+    private void OnFileSystemRenamed(object? sender, FileSystemRenamedEventArgs e)
+    {
+        // Refresh for rename operations
+        RefreshTreeViewIfNeeded(e.FullPath != null ? System.IO.Path.GetDirectoryName(e.FullPath) : null);
+    }
+
+    private void RefreshTreeViewIfNeeded(string? changedPath)
+    {
+        if (changedPath == null)
+            return;
+
         var activeTab = _tabManagerService.GetActiveTab();
-        if (activeTab?.CurrentPath != null && e.ParentPath != null)
+        if (activeTab?.CurrentPath != null)
         {
-            // Check if the operation happened in the current directory or a parent
+            // Check if the change happened in the current directory or a parent
             var currentPath = activeTab.CurrentPath.TrimEnd('\\', '/');
-            var parentPath = e.ParentPath.TrimEnd('\\', '/');
+            var changedDir = changedPath.TrimEnd('\\', '/');
             
-            if (currentPath.Equals(parentPath, StringComparison.OrdinalIgnoreCase) ||
-                currentPath.StartsWith(parentPath, StringComparison.OrdinalIgnoreCase))
+            if (currentPath.Equals(changedDir, StringComparison.OrdinalIgnoreCase) ||
+                currentPath.StartsWith(changedDir, StringComparison.OrdinalIgnoreCase))
             {
                 Dispatcher.Invoke(async () =>
                 {
@@ -405,6 +465,30 @@ public partial class MainWindow : Window
                     }
                 });
             }
+        }
+    }
+
+    private void StartWatchingDirectory(string path)
+    {
+        try
+        {
+            _fileSystemWatcherService.WatchDirectory(path, includeSubdirectories: false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error starting file system watcher for: {Path}", path);
+        }
+    }
+
+    private void StopWatchingDirectory(string path)
+    {
+        try
+        {
+            _fileSystemWatcherService.UnwatchDirectory(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error stopping file system watcher for: {Path}", path);
         }
     }
 }
