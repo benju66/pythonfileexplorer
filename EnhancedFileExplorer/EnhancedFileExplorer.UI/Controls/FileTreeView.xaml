@@ -1,12 +1,21 @@
 <UserControl x:Class="EnhancedFileExplorer.UI.Controls.FileTreeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:EnhancedFileExplorer.UI.Controls">
     <TreeView Name="FileTree" 
               SelectedItemChanged="FileTree_SelectedItemChanged"
               MouseDoubleClick="FileTree_MouseDoubleClick"
-              MouseRightButtonDown="FileTree_MouseRightButtonDown">
+              MouseRightButtonDown="FileTree_MouseRightButtonDown"
+              VirtualizingStackPanel.IsVirtualizing="True"
+              VirtualizingStackPanel.VirtualizationMode="Recycling">
+        <TreeView.ItemContainerStyle>
+            <Style TargetType="TreeViewItem">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+            </Style>
+        </TreeView.ItemContainerStyle>
         <TreeView.ItemTemplate>
-            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+            <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type controls:FileTreeViewModel}">
                 <StackPanel Orientation="Horizontal">
                     <Image Width="16" Height="16" Source="{Binding Icon}" Margin="0,0,5,0"/>
                     <TextBlock Text="{Binding Name}"/>

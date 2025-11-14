@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -22,6 +23,8 @@ public partial class FileTreeView : UserControl
     private ContextMenuBuilder? _contextMenuBuilder;
     private IIconService? _iconService;
     private string _currentPath = string.Empty;
+    private ObservableCollection<FileTreeViewModel> _rootItems;
+    private readonly Dictionary<string, FileTreeViewModel> _viewModelCache;
 
     public event EventHandler<string>? PathSelected;
     public event EventHandler<string>? PathDoubleClicked;
@@ -29,6 +32,12 @@ public partial class FileTreeView : UserControl
     public FileTreeView()
     {
         InitializeComponent();
+        _rootItems = new ObservableCollection<FileTreeViewModel>();
+        _viewModelCache = new Dictionary<string, FileTreeViewModel>(StringComparer.OrdinalIgnoreCase);
+        FileTree.ItemsSource = _rootItems;
+        
+        // Handle item expanded event for lazy loading
+        FileTree.AddHandler(TreeViewItem.ExpandedEvent, new RoutedEventHandler(OnItemExpanded));
     }
 
     public void Initialize(
@@ -64,16 +73,18 @@ public partial class FileTreeView : UserControl
         {
             var items = await _fileSystemService.GetItemsAsync(path);
             
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
-                FileTree.Items.Clear();
+                _rootItems.Clear();
+                _viewModelCache.Clear();
                 
                 // Show both files and directories, but directories will be expandable
                 // Sort: directories first, then files, both alphabetically
                 foreach (var item in items.OrderBy(i => i.IsDirectory ? 0 : 1).ThenBy(i => i.Name))
                 {
-                    var treeItem = CreateTreeViewItem(item);
-                    FileTree.Items.Add(treeItem);
+                    var viewModel = CreateViewModel(item);
+                    _rootItems.Add(viewModel);
+                    _viewModelCache[item.Path] = viewModel;
                 }
             });
 
@@ -86,158 +97,121 @@ public partial class FileTreeView : UserControl
         }
     }
 
-    private TreeViewItem CreateTreeViewItem(FileSystemItem item)
+    private FileTreeViewModel CreateViewModel(FileSystemItem item)
     {
-        var treeItem = new TreeViewItem
-        {
-            Header = CreateItemHeader(item),
-            Tag = item.Path,
-            IsExpanded = false
-        };
-
-        // For directories, add a placeholder item so the expand arrow appears
-        // This will be replaced with actual children when expanded
+        var viewModel = new FileTreeViewModel(item);
+        
+        // For directories, add a placeholder child to show expand arrow
         if (item.IsDirectory)
         {
-            // Add a placeholder to show the expand arrow
-            var placeholder = new TreeViewItem { Header = "Loading...", IsEnabled = false };
-            treeItem.Items.Add(placeholder);
-
-            // Handle expansion - load children when expanded
-            treeItem.Expanded += async (s, e) =>
-            {
-                var tvItem = s as TreeViewItem;
-                if (tvItem != null)
-                {
-                    // Check if we need to load children (only if placeholder is still there)
-                    if (tvItem.Items.Count == 1 && tvItem.Items[0] is TreeViewItem firstChild && 
-                        firstChild.Header is string header && header == "Loading...")
-                    {
-                        await LoadDirectoryChildrenAsync(tvItem, item.Path);
-                    }
-                }
-            };
+            var placeholder = new FileTreeViewModel(new FileSystemItem 
+            { 
+                Name = "Loading...", 
+                Path = string.Empty,
+                IsDirectory = false 
+            });
+            viewModel.Children.Add(placeholder);
         }
-
-        return treeItem;
-    }
-
-    private StackPanel CreateItemHeader(FileSystemItem item)
-    {
-        var panel = new StackPanel { Orientation = Orientation.Horizontal };
-        
-        // Icon
-        var icon = new Image
-        {
-            Width = 16,
-            Height = 16,
-            Margin = new Thickness(0, 0, 5, 0)
-        };
         
         // Load icon asynchronously
-        LoadIconAsync(item, icon);
-        panel.Children.Add(icon);
-
-        // Name
-        var textBlock = new TextBlock { Text = item.Name };
-        panel.Children.Add(textBlock);
-
-        return panel;
+        LoadIconForViewModel(viewModel);
+        
+        return viewModel;
     }
 
-    private async void LoadIconAsync(FileSystemItem item, Image icon)
+    private async void LoadIconForViewModel(FileTreeViewModel viewModel)
     {
         if (_iconService == null)
             return;
 
         try
         {
-            var iconSource = await _iconService.GetIconAsync(item.Path, item.IsDirectory);
+            var iconSource = await _iconService.GetIconAsync(viewModel.Path, viewModel.IsDirectory);
             if (iconSource is ImageSource imageSource)
             {
-                Dispatcher.Invoke(() =>
+                await Dispatcher.InvokeAsync(() =>
                 {
-                    icon.Source = imageSource;
+                    viewModel.Icon = imageSource;
                 });
             }
         }
         catch (Exception ex)
         {
-            _logger?.LogWarning(ex, "Failed to load icon for: {Path}", item.Path);
+            _logger?.LogWarning(ex, "Failed to load icon for: {Path}", viewModel.Path);
         }
     }
 
-    private async Task LoadDirectoryChildrenAsync(TreeViewItem parentItem, string path)
+    private async void OnItemExpanded(object sender, RoutedEventArgs e)
     {
-        if (_fileSystemService == null)
+        if (e.OriginalSource is TreeViewItem treeViewItem && 
+            treeViewItem.DataContext is FileTreeViewModel viewModel &&
+            viewModel.IsDirectory && 
+            !viewModel.IsLoaded)
+        {
+            await LoadChildrenAsync(viewModel);
+        }
+    }
+
+    private async Task LoadChildrenAsync(FileTreeViewModel parentViewModel)
+    {
+        if (_fileSystemService == null || parentViewModel.IsLoaded)
             return;
 
         try
         {
-            // Show loading indicator
-            Dispatcher.Invoke(() =>
-            {
-                parentItem.Items.Clear();
-                var loadingItem = new TreeViewItem { Header = "Loading...", IsEnabled = false };
-                parentItem.Items.Add(loadingItem);
-            });
+            // Clear placeholder
+            parentViewModel.Children.Clear();
 
-            var items = await _fileSystemService.GetItemsAsync(path);
+            var items = await _fileSystemService.GetItemsAsync(parentViewModel.Path);
             
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
-                parentItem.Items.Clear();
-                
-                // Show both directories and files in the tree
-                // Sort: directories first, then files, both alphabetically
                 var sortedItems = items.OrderBy(i => i.IsDirectory ? 0 : 1).ThenBy(i => i.Name);
                 
                 foreach (var item in sortedItems)
                 {
-                    var treeItem = CreateTreeViewItem(item);
-                    parentItem.Items.Add(treeItem);
+                    var childViewModel = CreateViewModel(item);
+                    parentViewModel.Children.Add(childViewModel);
+                    _viewModelCache[item.Path] = childViewModel;
                 }
 
-                // If no children, add a message
-                if (!sortedItems.Any())
-                {
-                    var emptyItem = new TreeViewItem { Header = "(empty)", IsEnabled = false };
-                    parentItem.Items.Add(emptyItem);
-                }
+                parentViewModel.IsLoaded = true;
             });
 
-            _logger?.LogInformation("Loaded directory children: {Path} ({Count} items)", path, items.Count());
+            _logger?.LogInformation("Loaded directory children: {Path} ({Count} items)", parentViewModel.Path, items.Count());
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Error loading directory children: {Path}", path);
+            _logger?.LogError(ex, "Error loading directory children: {Path}", parentViewModel.Path);
             
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
-                parentItem.Items.Clear();
-                var errorItem = new TreeViewItem { Header = $"Error: {ex.Message}", IsEnabled = false };
-                parentItem.Items.Add(errorItem);
+                parentViewModel.Children.Clear();
+                var errorViewModel = new FileTreeViewModel(new FileSystemItem 
+                { 
+                    Name = $"Error: {ex.Message}", 
+                    Path = string.Empty,
+                    IsDirectory = false 
+                });
+                parentViewModel.Children.Add(errorViewModel);
             });
         }
     }
 
+
     private void FileTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
-        if (FileTree.SelectedItem is TreeViewItem item && item.Tag is string path)
+        if (e.NewValue is FileTreeViewModel viewModel)
         {
-            PathSelected?.Invoke(this, path);
+            PathSelected?.Invoke(this, viewModel.Path);
         }
     }
 
     private void FileTree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (FileTree.SelectedItem is TreeViewItem item && item.Tag is string path)
+        if (FileTree.SelectedItem is FileTreeViewModel viewModel && viewModel.IsDirectory)
         {
-            // Check if it's a directory synchronously first
-            if (System.IO.Directory.Exists(path))
-            {
-                PathDoubleClicked?.Invoke(this, path);
-            }
+            PathDoubleClicked?.Invoke(this, viewModel.Path);
         }
     }
 
@@ -257,16 +231,12 @@ public partial class FileTreeView : UserControl
             bool isDirectory = false;
             bool isFile = false;
 
-            if (treeViewItem != null && treeViewItem.Tag is string path)
+            if (treeViewItem?.DataContext is FileTreeViewModel viewModel)
             {
-                selectedPath = path;
-                parentPath = System.IO.Path.GetDirectoryName(path);
-                
-                if (_fileSystemService != null)
-                {
-                    isDirectory = await _fileSystemService.IsDirectoryAsync(path);
-                    isFile = !isDirectory;
-                }
+                selectedPath = viewModel.Path;
+                parentPath = System.IO.Path.GetDirectoryName(viewModel.Path);
+                isDirectory = viewModel.IsDirectory;
+                isFile = !isDirectory;
             }
 
             var context = new ContextMenuContext
