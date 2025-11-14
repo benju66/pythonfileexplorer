@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using EnhancedFileExplorer.Core.Interfaces;
 using EnhancedFileExplorer.Core.Events;
 using EnhancedFileExplorer.Services.TabManagement;
+using EnhancedFileExplorer.Services.ContextMenus;
+using EnhancedFileExplorer.UI.Services;
 using EnhancedFileExplorer.UI.Controls;
 
 namespace EnhancedFileExplorer;
@@ -33,6 +35,7 @@ public partial class MainWindow : Window
         // Subscribe to events
         // Navigation events will be handled per-tab
         _undoRedoManager.StateChanged += OnUndoRedoStateChanged;
+        _undoRedoManager.FileOperationCompleted += OnFileOperationCompleted;
         _tabManagerService.ActiveTabChanged += OnActiveTabChanged;
         _tabManagerService.TabCreated += OnTabCreated;
         _tabManagerService.TabClosed += OnTabClosed;
@@ -160,7 +163,9 @@ public partial class MainWindow : Window
         var fileTreeView = new FileTreeView();
         fileTreeView.Initialize(
             _fileSystemService,
-            _serviceProvider.GetService<ILogger<FileTreeView>>());
+            _serviceProvider.GetService<ILogger<FileTreeView>>(),
+            _serviceProvider.GetRequiredService<IContextMenuProvider>(),
+            _serviceProvider.GetRequiredService<ContextMenuBuilder>());
         
         fileTreeView.PathDoubleClicked += async (s, path) =>
         {
@@ -371,6 +376,34 @@ public partial class MainWindow : Window
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error activating tab");
+            }
+        }
+    }
+
+    private void OnFileOperationCompleted(object? sender, FileOperationCompletedEventArgs e)
+    {
+        if (!e.IsSuccess)
+            return;
+
+        // Refresh the tree view if the operation affects the current directory
+        var activeTab = _tabManagerService.GetActiveTab();
+        if (activeTab?.CurrentPath != null && e.ParentPath != null)
+        {
+            // Check if the operation happened in the current directory or a parent
+            var currentPath = activeTab.CurrentPath.TrimEnd('\\', '/');
+            var parentPath = e.ParentPath.TrimEnd('\\', '/');
+            
+            if (currentPath.Equals(parentPath, StringComparison.OrdinalIgnoreCase) ||
+                currentPath.StartsWith(parentPath, StringComparison.OrdinalIgnoreCase))
+            {
+                Dispatcher.Invoke(async () =>
+                {
+                    if (MainTabControl.SelectedItem is TabItem tabItem && 
+                        tabItem.Content is FileTreeView fileTreeView)
+                    {
+                        await fileTreeView.LoadDirectoryAsync(activeTab.CurrentPath);
+                    }
+                });
             }
         }
     }

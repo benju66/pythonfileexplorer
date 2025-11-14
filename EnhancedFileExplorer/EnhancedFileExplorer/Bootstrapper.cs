@@ -7,6 +7,8 @@ using EnhancedFileExplorer.Services.FileOperations;
 using EnhancedFileExplorer.Services.UndoRedo;
 using EnhancedFileExplorer.Services.Navigation;
 using EnhancedFileExplorer.Services.TabManagement;
+using EnhancedFileExplorer.Services.ContextMenus;
+using EnhancedFileExplorer.UI.Services;
 
 namespace EnhancedFileExplorer;
 
@@ -39,7 +41,18 @@ public static class Bootstrapper
         services.AddScoped<INavigationService, NavigationService>(); // Scoped per tab
         services.AddSingleton<ITabManagerService, TabManagerService>(); // Singleton for tab management
 
-        return services.BuildServiceProvider();
+        // Context Menu Services
+        // Note: ContextMenuBuilder needs IServiceProvider, so we register it after building the provider
+        // We'll use a factory to create it with the service provider
+        services.AddSingleton<ContextMenuBuilder>(sp => 
+            new ContextMenuBuilder(
+                sp.GetRequiredService<IUndoRedoManager>(),
+                sp,
+                sp.GetRequiredService<ILogger<ContextMenuBuilder>>()));
+        services.AddTransient<IContextMenuProvider, FileTreeContextMenuProvider>();
+
+        var serviceProvider = services.BuildServiceProvider();
+        return serviceProvider;
     }
 }
 
