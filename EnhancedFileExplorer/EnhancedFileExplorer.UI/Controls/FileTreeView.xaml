@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <TreeView Name="FileTree" 
               SelectedItemChanged="FileTree_SelectedItemChanged"
-              MouseDoubleClick="FileTree_MouseDoubleClick">
+              MouseDoubleClick="FileTree_MouseDoubleClick"
+              MouseRightButtonDown="FileTree_MouseRightButtonDown">
         <TreeView.ItemTemplate>
             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                 <StackPanel Orientation="Horizontal">

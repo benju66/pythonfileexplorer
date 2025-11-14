@@ -39,6 +39,7 @@ public class UndoRedoManager : IUndoRedoManager
     public int MaxStackSize { get; set; } = 100;
 
     public event EventHandler<UndoRedoStateChangedEventArgs>? StateChanged;
+    public event EventHandler<FileOperationCompletedEventArgs>? FileOperationCompleted;
 
     public UndoRedoManager(ILogger<UndoRedoManager> logger)
     {
@@ -80,6 +81,7 @@ public class UndoRedoManager : IUndoRedoManager
                 }
 
                 RaiseStateChanged();
+                RaiseFileOperationCompleted(command);
                 _logger.LogInformation("Command executed: {Description}", command.Description);
             }
             else
@@ -195,6 +197,129 @@ public class UndoRedoManager : IUndoRedoManager
     private void RaiseStateChanged()
     {
         StateChanged?.Invoke(this, new UndoRedoStateChangedEventArgs(CanUndo, CanRedo));
+    }
+
+    private void RaiseFileOperationCompleted(ICommand command)
+    {
+        // Determine operation type and path from command
+        FileOperationType operationType;
+        string? path = null;
+        string? parentPath = null;
+
+        // Use reflection or type checking to determine command type
+        var commandType = command.GetType().Name;
+        
+        if (commandType.Contains("CreateFile"))
+        {
+            operationType = FileOperationType.Create;
+            // Try to get path from command using reflection
+            var pathProperty = command.GetType().GetProperty("CreatedPath");
+            if (pathProperty != null)
+            {
+                path = pathProperty.GetValue(command) as string;
+            }
+            else
+            {
+                var pathField = command.GetType().GetField("_createdPath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (pathField != null)
+                {
+                    path = pathField.GetValue(command) as string;
+                }
+            }
+            parentPath = path != null ? System.IO.Path.GetDirectoryName(path) : null;
+        }
+        else if (commandType.Contains("CreateFolder"))
+        {
+            operationType = FileOperationType.Create;
+            var pathProperty = command.GetType().GetProperty("CreatedPath");
+            if (pathProperty != null)
+            {
+                path = pathProperty.GetValue(command) as string;
+            }
+            else
+            {
+                var pathField = command.GetType().GetField("_createdPath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (pathField != null)
+                {
+                    path = pathField.GetValue(command) as string;
+                }
+            }
+            parentPath = path != null ? System.IO.Path.GetDirectoryName(path) : null;
+        }
+        else if (commandType.Contains("Delete"))
+        {
+            operationType = FileOperationType.Delete;
+            var pathProperty = command.GetType().GetProperty("Path");
+            if (pathProperty != null)
+            {
+                path = pathProperty.GetValue(command) as string;
+            }
+            else
+            {
+                var pathField = command.GetType().GetField("_path", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (pathField != null)
+                {
+                    path = pathField.GetValue(command) as string;
+                }
+            }
+            parentPath = path != null ? System.IO.Path.GetDirectoryName(path) : null;
+        }
+        else if (commandType.Contains("Rename"))
+        {
+            operationType = FileOperationType.Rename;
+            var oldPathProperty = command.GetType().GetProperty("OldPath");
+            if (oldPathProperty != null)
+            {
+                path = oldPathProperty.GetValue(command) as string;
+            }
+            else
+            {
+                var oldPathField = command.GetType().GetField("_oldPath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (oldPathField != null)
+                {
+                    path = oldPathField.GetValue(command) as string;
+                }
+                else
+                {
+                    var newPathProperty = command.GetType().GetProperty("NewPath");
+                    if (newPathProperty != null)
+                    {
+                        path = newPathProperty.GetValue(command) as string;
+                    }
+                    else
+                    {
+                        var newPathField = command.GetType().GetField("_newPath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (newPathField != null)
+                        {
+                            path = newPathField.GetValue(command) as string;
+                        }
+                    }
+                }
+            }
+            parentPath = path != null ? System.IO.Path.GetDirectoryName(path) : null;
+        }
+        else if (commandType.Contains("Copy"))
+        {
+            operationType = FileOperationType.Copy;
+        }
+        else if (commandType.Contains("Move"))
+        {
+            operationType = FileOperationType.Move;
+        }
+        else
+        {
+            // Unknown command type - don't raise event
+            return;
+        }
+
+        if (path != null)
+        {
+            FileOperationCompleted?.Invoke(this, new FileOperationCompletedEventArgs(
+                operationType,
+                path,
+                parentPath,
+                true));
+        }
     }
 }
 

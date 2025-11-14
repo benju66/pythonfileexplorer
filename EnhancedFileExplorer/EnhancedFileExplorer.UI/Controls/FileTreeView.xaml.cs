@@ -1,8 +1,12 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using EnhancedFileExplorer.Core.Interfaces;
 using EnhancedFileExplorer.Core.Models;
+using EnhancedFileExplorer.Services.ContextMenus;
+using EnhancedFileExplorer.UI.Services;
 using Microsoft.Extensions.Logging;
 
 namespace EnhancedFileExplorer.UI.Controls;
@@ -14,6 +18,8 @@ public partial class FileTreeView : UserControl
 {
     private IFileSystemService? _fileSystemService;
     private ILogger<FileTreeView>? _logger;
+    private IContextMenuProvider? _contextMenuProvider;
+    private ContextMenuBuilder? _contextMenuBuilder;
     private string _currentPath = string.Empty;
 
     public event EventHandler<string>? PathSelected;
@@ -24,10 +30,16 @@ public partial class FileTreeView : UserControl
         InitializeComponent();
     }
 
-    public void Initialize(IFileSystemService fileSystemService, ILogger<FileTreeView>? logger = null)
+    public void Initialize(
+        IFileSystemService fileSystemService, 
+        ILogger<FileTreeView>? logger = null,
+        IContextMenuProvider? contextMenuProvider = null,
+        ContextMenuBuilder? contextMenuBuilder = null)
     {
         _fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
         _logger = logger;
+        _contextMenuProvider = contextMenuProvider;
+        _contextMenuBuilder = contextMenuBuilder;
     }
 
     public string CurrentPath
@@ -197,7 +209,7 @@ public partial class FileTreeView : UserControl
         }
     }
 
-    private void FileTree_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void FileTree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (FileTree.SelectedItem is TreeViewItem item && item.Tag is string path)
         {
@@ -207,6 +219,70 @@ public partial class FileTreeView : UserControl
                 PathDoubleClicked?.Invoke(this, path);
             }
         }
+    }
+
+    private async void FileTree_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_contextMenuProvider == null || _contextMenuBuilder == null)
+            return;
+
+        try
+        {
+            // Find the item under the mouse cursor
+            var hitTestResult = VisualTreeHelper.HitTest(FileTree, e.GetPosition(FileTree));
+            var treeViewItem = FindParent<TreeViewItem>(hitTestResult.VisualHit);
+            
+            string? selectedPath = null;
+            string? parentPath = _currentPath;
+            bool isDirectory = false;
+            bool isFile = false;
+
+            if (treeViewItem != null && treeViewItem.Tag is string path)
+            {
+                selectedPath = path;
+                parentPath = System.IO.Path.GetDirectoryName(path);
+                
+                if (_fileSystemService != null)
+                {
+                    isDirectory = await _fileSystemService.IsDirectoryAsync(path);
+                    isFile = !isDirectory;
+                }
+            }
+
+            var context = new ContextMenuContext
+            {
+                SelectedPath = selectedPath,
+                ParentPath = parentPath ?? _currentPath,
+                IsDirectory = isDirectory,
+                IsFile = isFile
+            };
+
+            var actions = await _contextMenuProvider.GetMenuActionsAsync(context);
+            var menu = _contextMenuBuilder.BuildMenu(actions);
+            
+            menu.PlacementTarget = FileTree;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+            menu.IsOpen = true;
+
+            e.Handled = true;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error showing context menu");
+        }
+    }
+
+    private static T? FindParent<T>(DependencyObject? child) where T : DependencyObject
+    {
+        var parent = VisualTreeHelper.GetParent(child);
+        
+        if (parent == null)
+            return null;
+
+        if (parent is T parentOfType)
+            return parentOfType;
+
+        return FindParent<T>(parent);
     }
 }
 

@@ -46,5 +46,10 @@ public interface IUndoRedoManager
     /// Event raised when undo/redo state changes.
     /// </summary>
     event EventHandler<UndoRedoStateChangedEventArgs>? StateChanged;
+
+    /// <summary>
+    /// Event raised when a file operation command completes.
+    /// </summary>
+    event EventHandler<FileOperationCompletedEventArgs>? FileOperationCompleted;
 }
 
