@@ -52,6 +52,7 @@ public partial class ColumnHeaderControl : UserControl
         {
             // Check if mouse is near column border for resize cursor
             var point = e.GetPosition(this);
+            const double expanderColumnWidth = 19.0; // Match TreeViewItem expander column
             var columnWidths = new[]
             {
                 ColumnWidthManager.Instance.NameWidth,
@@ -60,7 +61,7 @@ public partial class ColumnHeaderControl : UserControl
                 ColumnWidthManager.Instance.CreatedWidth
             };
 
-            double x = 0;
+            double x = expanderColumnWidth; // Start after expander column
             bool nearBorder = false;
             for (int i = 0; i < columnWidths.Length - 1; i++)
             {
@@ -85,6 +86,7 @@ public partial class ColumnHeaderControl : UserControl
         base.OnMouseLeftButtonDown(e);
 
         var point = e.GetPosition(this);
+        const double expanderColumnWidth = 19.0; // Match TreeViewItem expander column
         var columnWidths = new[]
         {
             ColumnWidthManager.Instance.NameWidth,
@@ -94,7 +96,7 @@ public partial class ColumnHeaderControl : UserControl
         };
 
         // Check if clicking on column border for resizing
-        double x = 0;
+        double x = expanderColumnWidth; // Start after expander column
         bool isResizeArea = false;
         for (int i = 0; i < columnWidths.Length - 1; i++)
         {
@@ -115,7 +117,7 @@ public partial class ColumnHeaderControl : UserControl
         // If not resizing, check if clicking on column header for sorting
         if (!isResizeArea)
         {
-            x = 0;
+            x = expanderColumnWidth; // Start after expander column
             for (int i = 0; i < columnWidths.Length; i++)
             {
                 if (point.X >= x && point.X < x + columnWidths[i])

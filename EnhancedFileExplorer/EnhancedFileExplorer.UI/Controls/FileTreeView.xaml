@@ -23,11 +23,122 @@
                 <Style TargetType="TreeViewItem">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TreeViewItem">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition MinWidth="19" Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- Expander Button -->
+                                    <ToggleButton x:Name="Expander" 
+                                                  Grid.Column="0"
+                                                  ClickMode="Press"
+                                                  IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                                        <ToggleButton.Style>
+                                            <Style TargetType="ToggleButton">
+                                                <Setter Property="Focusable" Value="False"/>
+                                                <Setter Property="Width" Value="16"/>
+                                                <Setter Property="Height" Value="16"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ToggleButton">
+                                                            <Border Width="16" Height="16" Background="Transparent">
+                                                                <Path x:Name="ExpandPath" 
+                                                                      Fill="Transparent" 
+                                                                      Stroke="#FF989898" 
+                                                                      Data="M 0 2 L 8 2 L 4 6 Z">
+                                                                    <Path.RenderTransform>
+                                                                        <RotateTransform Angle="135" CenterX="4" CenterY="4"/>
+                                                                    </Path.RenderTransform>
+                                                                </Path>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsChecked" Value="True">
+                                                                    <Setter TargetName="ExpandPath" Property="RenderTransform">
+                                                                        <Setter.Value>
+                                                                            <RotateTransform Angle="180" CenterX="4" CenterY="4"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ToggleButton.Style>
+                                    </ToggleButton>
+                                    
+                                    <!-- Content Presenter - NO PADDING/MARGIN, wrapped in Border for selection -->
+                                    <Border x:Name="Bd" 
+                                            Grid.Column="1" 
+                                            Grid.ColumnSpan="2"
+                                            Margin="0"
+                                            Padding="0">
+                                        <ContentPresenter x:Name="PART_Header" 
+                                                          ContentSource="Header"
+                                                          HorizontalAlignment="Stretch"/>
+                                    </Border>
+                                    
+                                    <!-- Items Host -->
+                                    <ItemsPresenter x:Name="ItemsHost" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsExpanded" Value="false">
+                                        <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
+                                    </Trigger>
+                                    <Trigger Property="HasItems" Value="false">
+                                        <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="HasHeader" Value="false"/>
+                                            <Condition Property="Width" Value="Auto"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="PART_Header" Property="MinWidth" Value="75"/>
+                                    </MultiTrigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="HasHeader" Value="false"/>
+                                            <Condition Property="Height" Value="Auto"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="PART_Header" Property="MinHeight" Value="19"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsSelected" Value="true">
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                        <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="true"/>
+                                            <Condition Property="IsSelectionActive" Value="false"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                                        <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsEnabled" Value="false">
+                                        <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
             </TreeView.ItemContainerStyle>
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type controls:FileTreeViewModel}">
-                    <Grid>
+                    <Grid Margin="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="{Binding Source={x:Static controls:ColumnWidthManager.Instance}, Path=NameWidth}"/>
                             <ColumnDefinition Width="{Binding Source={x:Static controls:ColumnWidthManager.Instance}, Path=SizeWidth}"/>
@@ -42,11 +153,11 @@
                         </StackPanel>
                         
                         <!-- Column 1: Size -->
-                        <TextBlock Grid.Column="1" 
-                                   Text="{Binding FormattedSize}" 
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Right"
-                                   Margin="5,0"/>
+                        <Border Grid.Column="1" Padding="5,3,5,3">
+                            <TextBlock Text="{Binding FormattedSize}" 
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"/>
+                        </Border>
                         
                         <!-- Column 2: Date Modified -->
                         <TextBlock Grid.Column="2" 
