@@ -25,6 +25,8 @@ public partial class FileTreeView : UserControl
     private string _currentPath = string.Empty;
     private ObservableCollection<FileTreeViewModel> _rootItems;
     private readonly Dictionary<string, FileTreeViewModel> _viewModelCache;
+    private int _sortColumn = 0; // 0=Name, 1=Size, 2=Modified, 3=Created
+    private bool _sortAscending = true;
 
     public event EventHandler<string>? PathSelected;
     public event EventHandler<string>? PathDoubleClicked;
@@ -38,6 +40,12 @@ public partial class FileTreeView : UserControl
         
         // Handle item expanded event for lazy loading
         FileTree.AddHandler(TreeViewItem.ExpandedEvent, new RoutedEventHandler(OnItemExpanded));
+        
+        // Handle column header clicks for sorting
+        if (ColumnHeaders != null)
+        {
+            ColumnHeaders.ColumnHeaderClicked += OnColumnHeaderClicked;
+        }
     }
 
     public void Initialize(
@@ -78,9 +86,10 @@ public partial class FileTreeView : UserControl
                 _rootItems.Clear();
                 _viewModelCache.Clear();
                 
-                // Show both files and directories, but directories will be expandable
-                // Sort: directories first, then files, both alphabetically
-                foreach (var item in items.OrderBy(i => i.IsDirectory ? 0 : 1).ThenBy(i => i.Name))
+                // Sort items based on current sort column
+                var sortedItems = SortItems(items);
+                
+                foreach (var item in sortedItems)
                 {
                     var viewModel = CreateViewModel(item);
                     _rootItems.Add(viewModel);
@@ -166,7 +175,8 @@ public partial class FileTreeView : UserControl
             
             await Dispatcher.InvokeAsync(() =>
             {
-                var sortedItems = items.OrderBy(i => i.IsDirectory ? 0 : 1).ThenBy(i => i.Name);
+                // Sort items based on current sort column
+                var sortedItems = SortItems(items);
                 
                 foreach (var item in sortedItems)
                 {
@@ -273,6 +283,74 @@ public partial class FileTreeView : UserControl
             return parentOfType;
 
         return FindParent<T>(parent);
+    }
+
+    private void OnColumnHeaderClicked(object? sender, int columnIndex)
+    {
+        // Toggle sort direction if clicking same column, otherwise sort ascending
+        if (_sortColumn == columnIndex)
+        {
+            _sortAscending = !_sortAscending;
+        }
+        else
+        {
+            _sortColumn = columnIndex;
+            _sortAscending = true;
+        }
+
+        // Refresh current view
+        if (!string.IsNullOrWhiteSpace(_currentPath))
+        {
+            LoadDirectoryAsync(_currentPath).ConfigureAwait(false);
+        }
+    }
+
+    private IEnumerable<FileSystemItem> SortItems(IEnumerable<FileSystemItem> items)
+    {
+        // Always show directories first, then files
+        var directories = items.Where(i => i.IsDirectory);
+        var files = items.Where(i => !i.IsDirectory);
+
+        IOrderedEnumerable<FileSystemItem> sortedDirectories;
+        IOrderedEnumerable<FileSystemItem> sortedFiles;
+
+        // Sort directories
+        sortedDirectories = _sortColumn switch
+        {
+            0 => _sortAscending 
+                ? directories.OrderBy(i => i.Name)
+                : directories.OrderByDescending(i => i.Name),
+            1 => _sortAscending
+                ? directories.OrderBy(i => 0L) // Directories have no size
+                : directories.OrderByDescending(i => 0L),
+            2 => _sortAscending
+                ? directories.OrderBy(i => i.ModifiedDate)
+                : directories.OrderByDescending(i => i.ModifiedDate),
+            3 => _sortAscending
+                ? directories.OrderBy(i => i.CreatedDate)
+                : directories.OrderByDescending(i => i.CreatedDate),
+            _ => directories.OrderBy(i => i.Name)
+        };
+
+        // Sort files
+        sortedFiles = _sortColumn switch
+        {
+            0 => _sortAscending
+                ? files.OrderBy(i => i.Name)
+                : files.OrderByDescending(i => i.Name),
+            1 => _sortAscending
+                ? files.OrderBy(i => i.Size)
+                : files.OrderByDescending(i => i.Size),
+            2 => _sortAscending
+                ? files.OrderBy(i => i.ModifiedDate)
+                : files.OrderByDescending(i => i.ModifiedDate),
+            3 => _sortAscending
+                ? files.OrderBy(i => i.CreatedDate)
+                : files.OrderByDescending(i => i.CreatedDate),
+            _ => files.OrderBy(i => i.Name)
+        };
+
+        return sortedDirectories.Concat(sortedFiles);
     }
 }
 

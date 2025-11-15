@@ -2,26 +2,67 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:EnhancedFileExplorer.UI.Controls">
-    <TreeView Name="FileTree" 
-              SelectedItemChanged="FileTree_SelectedItemChanged"
-              MouseDoubleClick="FileTree_MouseDoubleClick"
-              MouseRightButtonDown="FileTree_MouseRightButtonDown"
-              VirtualizingStackPanel.IsVirtualizing="True"
-              VirtualizingStackPanel.VirtualizationMode="Recycling">
-        <TreeView.ItemContainerStyle>
-            <Style TargetType="TreeViewItem">
-                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-            </Style>
-        </TreeView.ItemContainerStyle>
-        <TreeView.ItemTemplate>
-            <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type controls:FileTreeViewModel}">
-                <StackPanel Orientation="Horizontal">
-                    <Image Width="16" Height="16" Source="{Binding Icon}" Margin="0,0,5,0"/>
-                    <TextBlock Text="{Binding Name}"/>
-                </StackPanel>
-            </HierarchicalDataTemplate>
-        </TreeView.ItemTemplate>
-    </TreeView>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Column Headers -->
+        <controls:ColumnHeaderControl Grid.Row="0" x:Name="ColumnHeaders"/>
+        
+        <!-- TreeView with Columns -->
+        <TreeView Grid.Row="1"
+                  Name="FileTree" 
+                  SelectedItemChanged="FileTree_SelectedItemChanged"
+                  MouseDoubleClick="FileTree_MouseDoubleClick"
+                  MouseRightButtonDown="FileTree_MouseRightButtonDown"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type controls:FileTreeViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{Binding Source={x:Static controls:ColumnWidthManager.Instance}, Path=NameWidth}"/>
+                            <ColumnDefinition Width="{Binding Source={x:Static controls:ColumnWidthManager.Instance}, Path=SizeWidth}"/>
+                            <ColumnDefinition Width="{Binding Source={x:Static controls:ColumnWidthManager.Instance}, Path=ModifiedWidth}"/>
+                            <ColumnDefinition Width="{Binding Source={x:Static controls:ColumnWidthManager.Instance}, Path=CreatedWidth}"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Column 0: Name with icon -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Image Width="16" Height="16" Source="{Binding Icon}" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <!-- Column 1: Size -->
+                        <TextBlock Grid.Column="1" 
+                                   Text="{Binding FormattedSize}" 
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"
+                                   Margin="5,0"/>
+                        
+                        <!-- Column 2: Date Modified -->
+                        <TextBlock Grid.Column="2" 
+                                   Text="{Binding FormattedModifiedDate}" 
+                                   VerticalAlignment="Center"
+                                   Margin="5,0"/>
+                        
+                        <!-- Column 3: Date Created -->
+                        <TextBlock Grid.Column="3" 
+                                   Text="{Binding FormattedCreatedDate}" 
+                                   VerticalAlignment="Center"
+                                   Margin="5,0"/>
+                    </Grid>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
 </UserControl>
 

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using EnhancedFileExplorer.Core.Models;
@@ -16,11 +17,19 @@ public class FileTreeViewModel : INotifyPropertyChanged
     private bool _isLoaded;
     private ImageSource? _icon;
     private ObservableCollection<FileTreeViewModel>? _children;
+    private string? _formattedSize;
+    private string? _formattedModifiedDate;
+    private string? _formattedCreatedDate;
 
     public FileSystemItem Item { get; }
     public string Name => Item.Name;
     public string Path => Item.Path;
     public bool IsDirectory => Item.IsDirectory;
+    
+    // Raw values for sorting
+    public long Size => Item.Size;
+    public DateTime ModifiedDate => Item.ModifiedDate;
+    public DateTime CreatedDate => Item.CreatedDate;
 
     public ImageSource? Icon
     {
@@ -33,6 +42,62 @@ public class FileTreeViewModel : INotifyPropertyChanged
                 OnPropertyChanged();
             }
         }
+    }
+
+    public string FormattedSize
+    {
+        get
+        {
+            if (_formattedSize == null)
+            {
+                _formattedSize = IsDirectory ? "—" : FormatFileSize(Item.Size);
+            }
+            return _formattedSize;
+        }
+    }
+
+    public string FormattedModifiedDate
+    {
+        get
+        {
+            if (_formattedModifiedDate == null)
+            {
+                _formattedModifiedDate = Item.ModifiedDate == default 
+                    ? "—" 
+                    : Item.ModifiedDate.ToString("g", CultureInfo.CurrentCulture);
+            }
+            return _formattedModifiedDate;
+        }
+    }
+
+    public string FormattedCreatedDate
+    {
+        get
+        {
+            if (_formattedCreatedDate == null)
+            {
+                _formattedCreatedDate = Item.CreatedDate == default 
+                    ? "—" 
+                    : Item.CreatedDate.ToString("g", CultureInfo.CurrentCulture);
+            }
+            return _formattedCreatedDate;
+        }
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        if (bytes == 0) return "0 B";
+        
+        int order = 0;
+        double size = bytes;
+        while (size >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            size /= 1024;
+        }
+
+        return $"{size:0.##} {sizes[order]}";
     }
 
     public ObservableCollection<FileTreeViewModel> Children
