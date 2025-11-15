@@ -205,7 +205,9 @@ public partial class MainWindow : Window
             _serviceProvider.GetService<ILogger<FileTreeView>>(),
             _serviceProvider.GetRequiredService<IContextMenuProvider>(),
             _serviceProvider.GetRequiredService<ContextMenuBuilder>(),
-            _serviceProvider.GetService<IIconService>());
+            _serviceProvider.GetService<IIconService>(),
+            _serviceProvider.GetService<IDragDropHandler>(),
+            _undoRedoManager);
         
         fileTreeView.PathDoubleClicked += async (s, path) =>
         {

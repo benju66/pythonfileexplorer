@@ -17,6 +17,12 @@
                   SelectedItemChanged="FileTree_SelectedItemChanged"
                   MouseDoubleClick="FileTree_MouseDoubleClick"
                   MouseRightButtonDown="FileTree_MouseRightButtonDown"
+                  PreviewMouseLeftButtonDown="FileTree_PreviewMouseLeftButtonDown"
+                  PreviewMouseMove="FileTree_PreviewMouseMove"
+                  DragOver="FileTree_DragOver"
+                  Drop="FileTree_Drop"
+                  DragLeave="FileTree_DragLeave"
+                  AllowDrop="True"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling">
             <TreeView.ItemContainerStyle>
@@ -85,7 +91,9 @@
                                             Grid.Column="1" 
                                             Grid.ColumnSpan="2"
                                             Margin="0"
-                                            Padding="0">
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0">
                                         <ContentPresenter x:Name="PART_Header" 
                                                           ContentSource="Header"
                                                           HorizontalAlignment="Stretch"/>

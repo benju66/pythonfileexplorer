@@ -39,6 +39,9 @@ public static class Bootstrapper
         services.AddSingleton<IIconService, IconService>();
         services.AddSingleton<IFileSystemWatcherService, FileSystemWatcherService>();
         services.AddScoped<IFileSystemService, FileSystemService>();
+        
+        // Register drag-drop handler
+        services.AddScoped<IDragDropHandler, FileTreeDragDropHandler>();
 
         // Services
         services.AddScoped<IFileOperationService, FileOperationService>();
