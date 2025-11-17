@@ -55,6 +55,11 @@ public partial class FileTreeView : UserControl
         MultiSelectBehavior.SetIsEnabled(FileTree, true);
         MultiSelectBehavior.SetSelectedItems(FileTree, _selectedItems);
         
+        // Enable drag source behavior for drag initiation
+        DragSourceBehavior.SetIsEnabled(FileTree, true);
+        DragSourceBehavior.SetSourceType(FileTree, "FileTree");
+        DragSourceBehavior.DragStartRequested += OnDragStartRequested;
+        
         // Handle item expanded event for lazy loading
         FileTree.AddHandler(TreeViewItem.ExpandedEvent, new RoutedEventHandler(OnItemExpanded));
         
@@ -662,75 +667,33 @@ public partial class FileTreeView : UserControl
     #region Drag and Drop
 
     // PreviewMouseLeftButtonDown is now handled by MultiSelectBehavior
-    // Drag start point is stored in the behavior
+    // PreviewMouseMove and PreviewMouseLeftButtonUp are now handled by DragSourceBehavior
+    // Drag initiation logic has been moved to DragSourceBehavior for better separation of concerns
 
-    private void FileTree_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    /// <summary>
+    /// Handles drag start requests from DragSourceBehavior.
+    /// This method executes the actual DoDragDrop operation.
+    /// </summary>
+    private void OnDragStartRequested(object? sender, DragStartEventArgs e)
     {
-        // If drag was started but cancelled (mouse released before threshold or drag failed),
-        // ensure drag state is cleared
-        var isDragging = MultiSelectBehavior.GetIsDragging(FileTree);
-        if (isDragging)
-        {
-            // Drag was in progress but mouse released - end drag
-            MultiSelectBehavior.EndDrag(FileTree);
-        }
-        else
-        {
-            // If drag didn't start (threshold not reached), reset drag start point
-            // This prevents the next mouse move from incorrectly triggering a drag
-            var dragStartPoint = MultiSelectBehavior.GetDragStartPoint(FileTree);
-            if (dragStartPoint.HasValue)
-            {
-                // Reset drag start point to prevent next mouse move from triggering drag
-                MultiSelectBehavior.ResetDragStartPoint(FileTree);
-            }
-        }
-    }
-
-    private void FileTree_PreviewMouseMove(object sender, MouseEventArgs e)
-    {
-        if (_dragDropHandler == null || e.LeftButton != MouseButtonState.Pressed)
+        if (_dragDropHandler == null || e.Source != FileTree)
             return;
 
-        // Get drag state from behavior
-        var isDragging = MultiSelectBehavior.GetIsDragging(FileTree);
-        var dragStartPoint = MultiSelectBehavior.GetDragStartPoint(FileTree);
-
-        // Don't start drag if we're already dragging or if no items are selected
-        if (isDragging || _selectedItems.Count == 0)
-            return;
-
-        // Check if drag start point is valid (was set on a valid item click)
-        if (!dragStartPoint.HasValue)
-            return;
-
-        // Check if mouse has moved enough to start a drag
-        var currentPosition = e.GetPosition(null);
-        var deltaX = Math.Abs(currentPosition.X - dragStartPoint.Value.X);
-        var deltaY = Math.Abs(currentPosition.Y - dragStartPoint.Value.Y);
-
-        if (deltaX > SystemParameters.MinimumHorizontalDragDistance || 
-            deltaY > SystemParameters.MinimumVerticalDragDistance)
-        {
-            // Begin drag and take snapshot BEFORE starting drag operation
-            MultiSelectBehavior.BeginDrag(FileTree);
-            StartDragOperation(e);
-        }
+        StartDragOperation(e.MouseEventArgs, e.SelectedItems);
     }
     
     // Keyboard navigation and selection are now handled by MultiSelectBehavior
 
-    private void StartDragOperation(MouseEventArgs e)
+    private void StartDragOperation(MouseEventArgs e, IReadOnlyList<object> dragSelection)
     {
         if (_dragDropHandler == null)
         {
-            // If drag handler is null, end drag that was started in PreviewMouseMove
+            // If drag handler is null, end drag that was started by DragSourceBehavior
             MultiSelectBehavior.EndDrag(FileTree);
             return;
         }
 
-        // Get selected items from immutable snapshot (taken when BeginDrag was called)
-        var dragSelection = MultiSelectBehavior.GetDragSelection(FileTree);
+        // Convert drag selection to FileTreeViewModel list
         var selectedItems = dragSelection.OfType<FileTreeViewModel>().ToList();
         
         if (selectedItems.Count == 0)
@@ -800,6 +763,32 @@ public partial class FileTreeView : UserControl
             // Always end drag and release selection lock
             MultiSelectBehavior.EndDrag(FileTree);
         }
+    }
+
+    private void FileTree_DragEnter(object sender, DragEventArgs e)
+    {
+        // Initialize drag-and-drop state when drag enters the TreeView
+        // This is called before DragOver, so we can set up initial state here
+        if (_dragDropHandler == null)
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
+        // Extract drag data to validate it's a valid drag operation
+        var dragData = _dragDropHandler.ExtractDragData(e.Data);
+        if (dragData == null)
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
+        // Allow the drag to continue - DragOver will handle detailed validation
+        // Set initial effects based on what's being dragged
+        e.Effects = DragDropEffects.Move | DragDropEffects.Copy;
+        e.Handled = true;
     }
 
     private void FileTree_DragOver(object sender, DragEventArgs e)

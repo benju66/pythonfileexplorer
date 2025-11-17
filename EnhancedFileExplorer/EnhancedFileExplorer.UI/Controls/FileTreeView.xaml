@@ -13,13 +13,14 @@
         <controls:ColumnHeaderControl Grid.Row="0" x:Name="ColumnHeaders"/>
         
         <!-- TreeView with Columns -->
+        <!-- Note: PreviewMouseLeftButtonDown, PreviewMouseMove, and PreviewMouseLeftButtonUp 
+             are handled by MultiSelectBehavior and DragSourceBehavior attached behaviors -->
         <TreeView Grid.Row="1"
                   Name="FileTree" 
                   SelectedItemChanged="FileTree_SelectedItemChanged"
                   MouseDoubleClick="FileTree_MouseDoubleClick"
                   MouseRightButtonDown="FileTree_MouseRightButtonDown"
-                  PreviewMouseLeftButtonUp="FileTree_PreviewMouseLeftButtonUp"
-                  PreviewMouseMove="FileTree_PreviewMouseMove"
+                  DragEnter="FileTree_DragEnter"
                   DragOver="FileTree_DragOver"
                   Drop="FileTree_Drop"
                   DragLeave="FileTree_DragLeave"

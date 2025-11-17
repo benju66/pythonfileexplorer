@@ -452,19 +452,36 @@ public static class MultiSelectBehavior
                 return;
             }
 
-            // Only set drag start point when clicking on valid items
-            SetDragStartPoint(e.GetPosition(null));
+            // Store clicked item reference for verification after selection
+            var clickedItem = treeViewItem.DataContext;
+            var mousePosition = e.GetPosition(null);
 
             // Ensure item is visible before selection (for virtualization)
             treeViewItem.BringIntoView();
             
-            // Handle selection
-            HandleSelection(e, treeViewItem.DataContext);
+            // Handle selection FIRST
+            HandleSelection(e, clickedItem);
+            
+            // AFTER selection completes, verify item is selected and set drag start point
+            // This fixes the timing issue where drag start point was set before selection completed
+            if (SelectedItems != null && SelectedItems.Contains(clickedItem))
+            {
+                // Item is selected - set drag start point for potential drag operation
+                SetDragStartPoint(mousePosition);
+            }
+            else
+            {
+                // Item not selected (e.g., Ctrl+Click deselected it, or selection was cleared)
+                ResetDragStartPoint();
+            }
             
             // Set focus for keyboard navigation
             treeViewItem.Focus();
             
-            e.Handled = true;
+            // DO NOT set e.Handled = true here - we need to allow WPF to capture the mouse
+            // for drag-and-drop operations. The event will bubble up, but we've already
+            // handled the selection logic. WPF needs the mouse down event to properly
+            // initiate drag operations via DoDragDrop().
         }
 
         public void OnPreviewKeyDown(object sender, KeyEventArgs e)
