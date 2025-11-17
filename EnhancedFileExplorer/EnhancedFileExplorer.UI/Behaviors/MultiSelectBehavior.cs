@@ -83,11 +83,12 @@ public static class MultiSelectBehavior
     /// <summary>
     /// Gets the drag start point from the behavior's internal state.
     /// Used by FileTreeView for drag detection.
+    /// Returns null if drag start point has not been set.
     /// </summary>
-    public static Point GetDragStartPoint(TreeView treeView)
+    public static Point? GetDragStartPoint(TreeView treeView)
     {
         var state = GetSelectionState(treeView);
-        return state?.DragStartPoint ?? new Point();
+        return state?.DragStartPoint;
     }
     
     /// <summary>
@@ -108,6 +109,52 @@ public static class MultiSelectBehavior
     {
         var state = GetSelectionState(treeView);
         state?.SetDragging(value);
+    }
+    
+    /// <summary>
+    /// Begins a drag operation, taking an immutable snapshot of the current selection.
+    /// </summary>
+    public static void BeginDrag(TreeView treeView)
+    {
+        var state = GetSelectionState(treeView);
+        state?.BeginDrag();
+    }
+    
+    /// <summary>
+    /// Ends a drag operation, releasing the selection lock.
+    /// </summary>
+    public static void EndDrag(TreeView treeView)
+    {
+        var state = GetSelectionState(treeView);
+        state?.EndDrag();
+    }
+    
+    /// <summary>
+    /// Gets the immutable snapshot of selection taken when drag began.
+    /// </summary>
+    public static IReadOnlyList<object> GetDragSelection(TreeView treeView)
+    {
+        var state = GetSelectionState(treeView);
+        return state?.GetDragSelection() ?? Array.Empty<object>();
+    }
+    
+    /// <summary>
+    /// Checks if selection can be modified for the given TreeView.
+    /// </summary>
+    public static bool CanModifySelection(TreeView treeView)
+    {
+        var state = GetSelectionState(treeView);
+        return state?.CanModifySelection() ?? true;
+    }
+    
+    /// <summary>
+    /// Resets the drag start point for the given TreeView.
+    /// Used when mouse is released without starting a drag operation.
+    /// </summary>
+    public static void ResetDragStartPoint(TreeView treeView)
+    {
+        var state = GetSelectionState(treeView);
+        state?.ResetDragStartPoint();
     }
 
     #endregion
@@ -237,15 +284,92 @@ public static class MultiSelectBehavior
     {
         private readonly TreeView _treeView;
         private object? _anchorItem;
-        private Point _dragStartPoint;
+        private Point? _dragStartPoint;
         private bool _isDragging;
+        private IReadOnlyList<object>? _dragSelectionSnapshot;
+        private readonly object _selectionLock = new object();
         
         public IList? SelectedItems { get; set; }
         
         // Expose drag state for FileTreeView integration
-        public Point DragStartPoint => _dragStartPoint;
+        public Point? DragStartPoint => _dragStartPoint;
         public bool IsDragging => _isDragging;
-        public void SetDragging(bool value) => _isDragging = value;
+        
+        /// <summary>
+        /// Begins a drag operation by taking an immutable snapshot of the current selection
+        /// and locking selection modifications.
+        /// </summary>
+        public void BeginDrag()
+        {
+            lock (_selectionLock)
+            {
+                _isDragging = true;
+                // Take immutable snapshot of current selection
+                _dragSelectionSnapshot = SelectedItems?.Cast<object>().ToList().AsReadOnly();
+            }
+        }
+        
+        /// <summary>
+        /// Ends a drag operation, releasing the selection lock and clearing the snapshot.
+        /// </summary>
+        public void EndDrag()
+        {
+            lock (_selectionLock)
+            {
+                _isDragging = false;
+                _dragSelectionSnapshot = null;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the immutable snapshot of selection taken when drag began.
+        /// Returns empty list if no drag is in progress.
+        /// </summary>
+        public IReadOnlyList<object> GetDragSelection()
+        {
+            lock (_selectionLock)
+            {
+                return _dragSelectionSnapshot ?? Array.Empty<object>();
+            }
+        }
+        
+        /// <summary>
+        /// Checks if selection can be modified (i.e., no drag is in progress).
+        /// </summary>
+        public bool CanModifySelection()
+        {
+            lock (_selectionLock)
+            {
+                return !_isDragging;
+            }
+        }
+        
+        /// <summary>
+        /// Sets the drag state. For backward compatibility, but prefer BeginDrag/EndDrag.
+        /// </summary>
+        public void SetDragging(bool value)
+        {
+            if (value)
+                BeginDrag();
+            else
+                EndDrag();
+        }
+        
+        /// <summary>
+        /// Resets the drag start point to null (not set).
+        /// </summary>
+        public void ResetDragStartPoint()
+        {
+            _dragStartPoint = null;
+        }
+        
+        /// <summary>
+        /// Sets the drag start point. Should only be called when clicking on valid items.
+        /// </summary>
+        public void SetDragStartPoint(Point point)
+        {
+            _dragStartPoint = point;
+        }
 
         public SelectionState(TreeView treeView)
         {
@@ -297,13 +421,23 @@ public static class MultiSelectBehavior
 
         public void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Store drag start point for drag detection
-            _dragStartPoint = e.GetPosition(null);
-            _isDragging = false;
+            // Reset drag state on new mouse down (only if not already dragging)
+            // This handles the case where a new click happens while a drag might be in progress
+            if (!_isDragging)
+            {
+                _isDragging = false; // Already false, but explicit for clarity
+            }
+            else
+            {
+                // If already dragging, end the previous drag operation
+                EndDrag();
+            }
             
             // Check if click is on expander button - allow it to work normally
             if (IsClickOnExpander(e))
             {
+                // Reset drag start point for expander clicks
+                ResetDragStartPoint();
                 return; // Don't handle, let expander work
             }
 
@@ -311,11 +445,15 @@ public static class MultiSelectBehavior
             var treeViewItem = FindTreeViewItem(e.OriginalSource as DependencyObject);
             if (treeViewItem?.DataContext == null)
             {
-                // Empty space click - clear selection
+                // Empty space click - clear selection and reset drag start point
+                ResetDragStartPoint();
                 ClearSelection();
                 e.Handled = true;
                 return;
             }
+
+            // Only set drag start point when clicking on valid items
+            SetDragStartPoint(e.GetPosition(null));
 
             // Ensure item is visible before selection (for virtualization)
             treeViewItem.BringIntoView();
@@ -331,6 +469,10 @@ public static class MultiSelectBehavior
 
         public void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
+            // Prevent keyboard selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             var modifiers = Keyboard.Modifiers;
 
             if (modifiers == ModifierKeys.Shift)
@@ -420,6 +562,10 @@ public static class MultiSelectBehavior
 
         private void HandleSelection(MouseButtonEventArgs e, object clickedItem)
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             var modifiers = Keyboard.Modifiers;
 
             if (modifiers == ModifierKeys.Control)
@@ -444,6 +590,10 @@ public static class MultiSelectBehavior
 
         private void AddToSelection(object item)
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             if (SelectedItems == null || SelectedItems.Contains(item))
                 return;
 
@@ -453,6 +603,10 @@ public static class MultiSelectBehavior
 
         private void RemoveFromSelection(object item)
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             if (SelectedItems == null || !SelectedItems.Contains(item))
                 return;
 
@@ -468,6 +622,10 @@ public static class MultiSelectBehavior
 
         private void ToggleSelection(object item)
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             if (SelectedItems == null)
                 return;
 
@@ -483,6 +641,10 @@ public static class MultiSelectBehavior
 
         private void ClearSelection()
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             if (SelectedItems == null)
                 return;
 
@@ -493,10 +655,16 @@ public static class MultiSelectBehavior
             }
             
             _anchorItem = null;
+            // Reset drag start point when clearing selection
+            ResetDragStartPoint();
         }
 
         private void SelectRange(object anchorItem, object currentItem)
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             var visibleItems = GetVisibleItems();
             var anchorIndex = visibleItems.IndexOf(anchorItem);
             var currentIndex = visibleItems.IndexOf(currentItem);
@@ -524,6 +692,10 @@ public static class MultiSelectBehavior
 
         private void ExtendSelectionKeyboard(bool moveUp)
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             var visibleItems = GetVisibleItems();
             if (visibleItems.Count == 0)
                 return;
@@ -589,6 +761,10 @@ public static class MultiSelectBehavior
 
         private void SelectAllVisible()
         {
+            // Prevent selection changes during drag
+            if (!CanModifySelection())
+                return;
+            
             var visibleItems = GetVisibleItems();
             ClearSelection();
             foreach (var item in visibleItems)

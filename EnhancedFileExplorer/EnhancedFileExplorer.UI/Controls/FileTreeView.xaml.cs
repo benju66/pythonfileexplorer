@@ -161,13 +161,28 @@ public partial class FileTreeView : UserControl
                 if (_viewModelCache.TryGetValue(path, out var viewModel))
                 {
                     // Remove old children from cache and selection
-                    foreach (var child in viewModel.Children.ToList())
+                    // Check if selection can be modified (not during drag)
+                    if (MultiSelectBehavior.CanModifySelection(FileTree))
                     {
-                        if (!string.IsNullOrEmpty(child.Path))
+                        foreach (var child in viewModel.Children.ToList())
                         {
-                            _viewModelCache.Remove(child.Path);
-                            _selectedItems.Remove(child);
-                            child.IsSelected = false;
+                            if (!string.IsNullOrEmpty(child.Path))
+                            {
+                                _viewModelCache.Remove(child.Path);
+                                _selectedItems.Remove(child);
+                                child.IsSelected = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // During drag, only remove from cache, not selection
+                        foreach (var child in viewModel.Children.ToList())
+                        {
+                            if (!string.IsNullOrEmpty(child.Path))
+                            {
+                                _viewModelCache.Remove(child.Path);
+                            }
                         }
                     }
                     
@@ -187,13 +202,28 @@ public partial class FileTreeView : UserControl
                 else if (string.Equals(path, _currentPath, StringComparison.OrdinalIgnoreCase))
                 {
                     // Remove old root items from cache and selection
-                    foreach (var item in _rootItems.ToList())
+                    // Check if selection can be modified (not during drag)
+                    if (MultiSelectBehavior.CanModifySelection(FileTree))
                     {
-                        if (!string.IsNullOrEmpty(item.Path))
+                        foreach (var item in _rootItems.ToList())
                         {
-                            _viewModelCache.Remove(item.Path);
-                            _selectedItems.Remove(item);
-                            item.IsSelected = false;
+                            if (!string.IsNullOrEmpty(item.Path))
+                            {
+                                _viewModelCache.Remove(item.Path);
+                                _selectedItems.Remove(item);
+                                item.IsSelected = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // During drag, only remove from cache, not selection
+                        foreach (var item in _rootItems.ToList())
+                        {
+                            if (!string.IsNullOrEmpty(item.Path))
+                            {
+                                _viewModelCache.Remove(item.Path);
+                            }
                         }
                     }
                     
@@ -286,6 +316,10 @@ public partial class FileTreeView : UserControl
     /// </summary>
     private void RestoreSelectedPaths(HashSet<string> selectedPaths)
     {
+        // Prevent selection changes during drag
+        if (!MultiSelectBehavior.CanModifySelection(FileTree))
+            return;
+        
         // Clear selection through the behavior's collection
         _selectedItems.Clear();
         
@@ -630,6 +664,29 @@ public partial class FileTreeView : UserControl
     // PreviewMouseLeftButtonDown is now handled by MultiSelectBehavior
     // Drag start point is stored in the behavior
 
+    private void FileTree_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        // If drag was started but cancelled (mouse released before threshold or drag failed),
+        // ensure drag state is cleared
+        var isDragging = MultiSelectBehavior.GetIsDragging(FileTree);
+        if (isDragging)
+        {
+            // Drag was in progress but mouse released - end drag
+            MultiSelectBehavior.EndDrag(FileTree);
+        }
+        else
+        {
+            // If drag didn't start (threshold not reached), reset drag start point
+            // This prevents the next mouse move from incorrectly triggering a drag
+            var dragStartPoint = MultiSelectBehavior.GetDragStartPoint(FileTree);
+            if (dragStartPoint.HasValue)
+            {
+                // Reset drag start point to prevent next mouse move from triggering drag
+                MultiSelectBehavior.ResetDragStartPoint(FileTree);
+            }
+        }
+    }
+
     private void FileTree_PreviewMouseMove(object sender, MouseEventArgs e)
     {
         if (_dragDropHandler == null || e.LeftButton != MouseButtonState.Pressed)
@@ -643,14 +700,20 @@ public partial class FileTreeView : UserControl
         if (isDragging || _selectedItems.Count == 0)
             return;
 
+        // Check if drag start point is valid (was set on a valid item click)
+        if (!dragStartPoint.HasValue)
+            return;
+
         // Check if mouse has moved enough to start a drag
         var currentPosition = e.GetPosition(null);
-        var deltaX = Math.Abs(currentPosition.X - dragStartPoint.X);
-        var deltaY = Math.Abs(currentPosition.Y - dragStartPoint.Y);
+        var deltaX = Math.Abs(currentPosition.X - dragStartPoint.Value.X);
+        var deltaY = Math.Abs(currentPosition.Y - dragStartPoint.Value.Y);
 
         if (deltaX > SystemParameters.MinimumHorizontalDragDistance || 
             deltaY > SystemParameters.MinimumVerticalDragDistance)
         {
+            // Begin drag and take snapshot BEFORE starting drag operation
+            MultiSelectBehavior.BeginDrag(FileTree);
             StartDragOperation(e);
         }
     }
@@ -660,16 +723,30 @@ public partial class FileTreeView : UserControl
     private void StartDragOperation(MouseEventArgs e)
     {
         if (_dragDropHandler == null)
+        {
+            // If drag handler is null, end drag that was started in PreviewMouseMove
+            MultiSelectBehavior.EndDrag(FileTree);
             return;
+        }
 
-        // Get selected items from behavior
-        var selectedItems = _selectedItems.OfType<FileTreeViewModel>().ToList();
+        // Get selected items from immutable snapshot (taken when BeginDrag was called)
+        var dragSelection = MultiSelectBehavior.GetDragSelection(FileTree);
+        var selectedItems = dragSelection.OfType<FileTreeViewModel>().ToList();
+        
         if (selectedItems.Count == 0)
+        {
+            // No items in snapshot, end drag
+            MultiSelectBehavior.EndDrag(FileTree);
             return;
+        }
 
         var sourcePaths = selectedItems.Select(vm => vm.Path).Where(p => !string.IsNullOrEmpty(p)).ToArray();
         if (sourcePaths.Length == 0)
+        {
+            // No valid paths, end drag
+            MultiSelectBehavior.EndDrag(FileTree);
             return;
+        }
 
         // Validate drag
         var context = new DragDropContext
@@ -680,18 +757,22 @@ public partial class FileTreeView : UserControl
 
         var canDrag = _dragDropHandler.CanDrag(context);
         if (!canDrag.IsValid)
+        {
+            // Drag not allowed, end drag
+            MultiSelectBehavior.EndDrag(FileTree);
             return;
+        }
 
-        // Mark drag as started in behavior
-        MultiSelectBehavior.SetIsDragging(FileTree, true);
-        
-        // Prevent selection changes during drag
-        // Selection is already set, so we just mark that we're dragging
+        // Drag is already started (BeginDrag was called in PreviewMouseMove)
+        // Selection is locked and snapshot is taken
 
         // Create drag data
         var dataObject = _dragDropHandler.CreateDragData(sourcePaths, isCut: false);
         if (dataObject is not System.Windows.IDataObject wpfDataObject)
+        {
+            MultiSelectBehavior.EndDrag(FileTree);
             return;
+        }
 
         // Determine allowed effects
         var allowedEffects = System.Windows.DragDropEffects.Move | System.Windows.DragDropEffects.Copy;
@@ -716,8 +797,8 @@ public partial class FileTreeView : UserControl
         }
         finally
         {
-            // Clear drag state in behavior
-            MultiSelectBehavior.SetIsDragging(FileTree, false);
+            // Always end drag and release selection lock
+            MultiSelectBehavior.EndDrag(FileTree);
         }
     }
 

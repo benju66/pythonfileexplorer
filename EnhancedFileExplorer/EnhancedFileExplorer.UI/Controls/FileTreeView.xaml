@@ -18,6 +18,7 @@
                   SelectedItemChanged="FileTree_SelectedItemChanged"
                   MouseDoubleClick="FileTree_MouseDoubleClick"
                   MouseRightButtonDown="FileTree_MouseRightButtonDown"
+                  PreviewMouseLeftButtonUp="FileTree_PreviewMouseLeftButtonUp"
                   PreviewMouseMove="FileTree_PreviewMouseMove"
                   DragOver="FileTree_DragOver"
                   Drop="FileTree_Drop"
