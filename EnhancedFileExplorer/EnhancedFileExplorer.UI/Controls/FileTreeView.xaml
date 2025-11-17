@@ -95,10 +95,18 @@
                                             Margin="0"
                                             Padding="0"
                                             Background="Transparent"
-                                            BorderThickness="0">
+                                            BorderThickness="0"
+                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                            RenderOptions.ClearTypeHint="Enabled"
+                                            UseLayoutRounding="True"
+                                            SnapsToDevicePixels="True">
                                         <ContentPresenter x:Name="PART_Header" 
                                                           ContentSource="Header"
-                                                          HorizontalAlignment="Stretch"/>
+                                                          HorizontalAlignment="Stretch"
+                                                          RenderOptions.BitmapScalingMode="HighQuality"
+                                                          RenderOptions.ClearTypeHint="Enabled"
+                                                          TextOptions.TextFormattingMode="Display"
+                                                          TextOptions.TextRenderingMode="ClearType"/>
                                     </Border>
                                     
                                     <!-- Items Host -->
@@ -141,6 +149,61 @@
                                     <Trigger Property="IsEnabled" Value="false">
                                         <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                                     </Trigger>
+                                    <!-- Drop target visual feedback using attached property -->
+                                    <DataTrigger Binding="{Binding (behaviors:DropTargetBehavior.IsDropTarget), RelativeSource={RelativeSource Self}}" Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetName="Bd" 
+                                                                   Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                   To="#009600"
+                                                                   Duration="0:0:0.2">
+                                                        <ColorAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ColorAnimation.EasingFunction>
+                                                    </ColorAnimation>
+                                                    <ThicknessAnimation Storyboard.TargetName="Bd"
+                                                                       Storyboard.TargetProperty="BorderThickness"
+                                                                       To="2"
+                                                                       Duration="0:0:0.2">
+                                                        <ThicknessAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ThicknessAnimation.EasingFunction>
+                                                    </ThicknessAnimation>
+                                                    <ColorAnimation Storyboard.TargetName="Bd"
+                                                                   Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                                   To="#009600"
+                                                                   Duration="0:0:0.2">
+                                                        <ColorAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ColorAnimation.EasingFunction>
+                                                    </ColorAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetName="Bd" 
+                                                                   Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                   To="Transparent"
+                                                                   Duration="0:0:0.2">
+                                                        <ColorAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ColorAnimation.EasingFunction>
+                                                    </ColorAnimation>
+                                                    <ThicknessAnimation Storyboard.TargetName="Bd"
+                                                                       Storyboard.TargetProperty="BorderThickness"
+                                                                       To="0"
+                                                                       Duration="0:0:0.2">
+                                                        <ThicknessAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ThicknessAnimation.EasingFunction>
+                                                    </ThicknessAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Setter.Value>

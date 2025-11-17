@@ -4,14 +4,18 @@ using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using EnhancedFileExplorer.Core.Interfaces;
 using EnhancedFileExplorer.Core.Models;
 using EnhancedFileExplorer.Services.ContextMenus;
 using EnhancedFileExplorer.Services.FileOperations.Commands;
+using EnhancedFileExplorer.UI.Adorners;
 using EnhancedFileExplorer.UI.Behaviors;
+using EnhancedFileExplorer.UI.Helpers;
 using EnhancedFileExplorer.UI.Services;
 using Microsoft.Extensions.Logging;
 
@@ -37,6 +41,9 @@ public partial class FileTreeView : UserControl
     
     // Drag state - drag start point and dragging flag are now managed by MultiSelectBehavior
     private TreeViewItem? _currentDropTarget; // Track current drop target for visual feedback
+    private readonly Dictionary<TreeViewItem, Border?> _borderCache = new(); // Cache for Border lookups
+    private FileTreeDragAdorner? _dragAdorner; // Drag adorner for visual feedback
+    private DispatcherTimer? _adornerUpdateTimer; // Throttle adorner position updates
     
     // Multi-select state - now managed by MultiSelectBehavior
     private readonly ObservableCollection<FileTreeViewModel> _selectedItems = new();
@@ -756,8 +763,11 @@ public partial class FileTreeView : UserControl
         // Determine allowed effects
         var allowedEffects = System.Windows.DragDropEffects.Move | System.Windows.DragDropEffects.Copy;
 
+        // Create and show drag adorner with badge count
         try
         {
+            CreateDragAdorner(selectedItems);
+            
             var result = DragDrop.DoDragDrop(FileTree, wpfDataObject, allowedEffects);
             
             // Handle result if needed (e.g., clear cut clipboard)
@@ -776,6 +786,9 @@ public partial class FileTreeView : UserControl
         }
         finally
         {
+            // Clean up drag adorner
+            RemoveDragAdorner();
+            
             // Always end drag and release selection lock
             MultiSelectBehavior.EndDrag(FileTree);
         }
@@ -827,9 +840,10 @@ public partial class FileTreeView : UserControl
             return;
         }
 
-        // Find drop target
+        // Find drop target using DropZoneHelper (supports expanded folder children)
         var hitTestResult = VisualTreeHelper.HitTest(FileTree, e.GetPosition(FileTree));
-        var treeViewItem = FindParent<TreeViewItem>(hitTestResult.VisualHit);
+        var mousePosition = e.GetPosition(FileTree);
+        var treeViewItem = DropZoneHelper.FindDropTarget(FileTree, hitTestResult?.VisualHit, mousePosition);
         
         string? targetPath = null;
         bool isDirectory = false;
@@ -926,9 +940,10 @@ public partial class FileTreeView : UserControl
             return;
         }
 
-        // Find drop target
+        // Find drop target using DropZoneHelper (supports expanded folder children)
         var hitTestResult = VisualTreeHelper.HitTest(FileTree, e.GetPosition(FileTree));
-        var treeViewItem = FindParent<TreeViewItem>(hitTestResult.VisualHit);
+        var mousePosition = e.GetPosition(FileTree);
+        var treeViewItem = DropZoneHelper.FindDropTarget(FileTree, hitTestResult?.VisualHit, mousePosition);
         
         string? targetPath = null;
         bool isDirectory = false;
@@ -1055,7 +1070,86 @@ public partial class FileTreeView : UserControl
     }
 
     /// <summary>
-    /// Sets visual feedback for the drop target (highlight border/background).
+    /// Creates and displays the drag adorner with badge count.
+    /// </summary>
+    private void CreateDragAdorner(IReadOnlyList<FileTreeViewModel> items)
+    {
+        if (items == null || items.Count == 0)
+            return;
+
+        try
+        {
+            _dragAdorner = new FileTreeDragAdorner(FileTree, items);
+            var adornerLayer = AdornerLayer.GetAdornerLayer(FileTree);
+            if (adornerLayer != null)
+            {
+                adornerLayer.Add(_dragAdorner);
+                
+                // Setup throttled position updates
+                _adornerUpdateTimer = new DispatcherTimer(
+                    TimeSpan.FromMilliseconds(16), // ~60 FPS
+                    DispatcherPriority.Input,
+                    (s, e) => UpdateDragAdornerPosition(),
+                    Dispatcher);
+                _adornerUpdateTimer.Start();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to create drag adorner");
+        }
+    }
+
+    /// <summary>
+    /// Updates the drag adorner position based on current mouse position.
+    /// </summary>
+    private void UpdateDragAdornerPosition()
+    {
+        if (_dragAdorner == null)
+            return;
+
+        try
+        {
+            var mousePosition = Mouse.GetPosition(FileTree);
+            _dragAdorner.UpdatePosition(mousePosition);
+        }
+        catch
+        {
+            // Ignore errors during position update
+        }
+    }
+
+    /// <summary>
+    /// Removes and cleans up the drag adorner.
+    /// </summary>
+    private void RemoveDragAdorner()
+    {
+        if (_adornerUpdateTimer != null)
+        {
+            _adornerUpdateTimer.Stop();
+            _adornerUpdateTimer = null;
+        }
+
+        if (_dragAdorner != null)
+        {
+            try
+            {
+                var adornerLayer = AdornerLayer.GetAdornerLayer(FileTree);
+                adornerLayer?.Remove(_dragAdorner);
+            }
+            catch
+            {
+                // Ignore errors during cleanup
+            }
+            finally
+            {
+                _dragAdorner = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets visual feedback for the drop target using attached property for smooth animations.
     /// </summary>
     private void SetDropTargetVisual(TreeViewItem item, bool isCopy)
     {
@@ -1067,22 +1161,8 @@ public partial class FileTreeView : UserControl
 
         _currentDropTarget = item;
 
-        // Find the Border element (PART_Header wrapper) in the template
-        var border = FindVisualChild<Border>(item, "Bd");
-        if (border != null)
-        {
-            // Set visual feedback: light blue background for valid drop target
-            // Use a slightly different shade for copy vs move
-            var brush = new SolidColorBrush(isCopy 
-                ? Color.FromArgb(0x80, 0x00, 0x7A, 0xCC) // Light blue for copy
-                : Color.FromArgb(0x80, 0x00, 0x96, 0x00)); // Light green for move
-            
-            border.Background = brush;
-            border.BorderBrush = new SolidColorBrush(isCopy 
-                ? Color.FromRgb(0x00, 0x7A, 0xCC) 
-                : Color.FromRgb(0x00, 0x96, 0x00));
-            border.BorderThickness = new Thickness(2);
-        }
+        // Use attached property to trigger visual state change (animations handled in XAML)
+        DropTargetBehavior.SetIsDropTarget(item, true);
     }
 
     /// <summary>
@@ -1092,39 +1172,22 @@ public partial class FileTreeView : UserControl
     {
         if (_currentDropTarget != null)
         {
-            var border = FindVisualChild<Border>(_currentDropTarget, "Bd");
-            if (border != null)
-            {
-                // Reset to default (transparent or selection-based)
-                border.Background = Brushes.Transparent;
-                border.BorderBrush = Brushes.Transparent;
-                border.BorderThickness = new Thickness(0);
-            }
+            // Reset attached property to trigger exit animation
+            DropTargetBehavior.SetIsDropTarget(_currentDropTarget, false);
             _currentDropTarget = null;
         }
     }
 
     /// <summary>
-    /// Finds a visual child element by name in the visual tree.
+    /// Finds a visual child element by name in the visual tree (cached for performance).
     /// </summary>
-    private static T? FindVisualChild<T>(DependencyObject parent, string childName) where T : DependencyObject
+    private T? FindVisualChild<T>(DependencyObject parent, string childName) where T : DependencyObject
     {
         if (parent == null)
             return null;
 
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            
-            if (child is T t && child is FrameworkElement fe && fe.Name == childName)
-                return t;
-
-            var childOfChild = FindVisualChild<T>(child, childName);
-            if (childOfChild != null)
-                return childOfChild;
-        }
-
-        return null;
+        // Use cached helper method
+        return VisualTreeHelperExtensions.FindVisualChild<T>(parent, childName);
     }
 
     // Selection methods are now handled by MultiSelectBehavior
