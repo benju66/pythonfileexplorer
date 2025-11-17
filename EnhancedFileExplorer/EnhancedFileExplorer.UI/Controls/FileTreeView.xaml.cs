@@ -68,6 +68,21 @@ public partial class FileTreeView : UserControl
         {
             ColumnHeaders.ColumnHeaderClicked += OnColumnHeaderClicked;
         }
+
+        // CRITICAL FIX #4: Unsubscribe event handler when control is unloaded to prevent memory leaks
+        this.Unloaded += FileTreeView_Unloaded;
+    }
+
+    /// <summary>
+    /// Handles Unloaded event to clean up event subscriptions and prevent memory leaks.
+    /// </summary>
+    private void FileTreeView_Unloaded(object sender, RoutedEventArgs e)
+    {
+        // Unsubscribe from static event to prevent memory leaks
+        DragSourceBehavior.DragStartRequested -= OnDragStartRequested;
+        
+        // Unsubscribe from Unloaded event
+        this.Unloaded -= FileTreeView_Unloaded;
     }
 
     public void Initialize(
@@ -679,12 +694,13 @@ public partial class FileTreeView : UserControl
         if (_dragDropHandler == null || e.Source != FileTree)
             return;
 
-        StartDragOperation(e.MouseEventArgs, e.SelectedItems);
+        // Use captured mouse position instead of MouseEventArgs (which is now a Point)
+        StartDragOperation(e.MousePosition, e.SelectedItems);
     }
     
     // Keyboard navigation and selection are now handled by MultiSelectBehavior
 
-    private void StartDragOperation(MouseEventArgs e, IReadOnlyList<object> dragSelection)
+    private void StartDragOperation(Point mousePosition, IReadOnlyList<object> dragSelection)
     {
         if (_dragDropHandler == null)
         {

@@ -25,9 +25,9 @@ public class DragStartEventArgs : EventArgs
     public IReadOnlyList<object> SelectedItems { get; set; } = Array.Empty<object>();
 
     /// <summary>
-    /// The mouse event arguments from PreviewMouseMove.
+    /// The current mouse position (captured before dispatcher callback to avoid stale event args).
     /// </summary>
-    public MouseEventArgs MouseEventArgs { get; set; } = null!;
+    public Point MousePosition { get; set; }
 }
 
 /// <summary>
@@ -160,6 +160,7 @@ public static class DragSourceBehavior
     private class DragSourceState
     {
         private readonly TreeView _treeView;
+        private bool _dragCallbackPending; // Flag to prevent multiple queued callbacks
 
         public DragSourceState(TreeView treeView)
         {
@@ -170,14 +171,18 @@ public static class DragSourceBehavior
         {
             // Only handle if left button is pressed
             if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                // Reset pending flag if mouse button released
+                _dragCallbackPending = false;
                 return;
+            }
 
             // Get drag state from MultiSelectBehavior
             var isDragging = MultiSelectBehavior.GetIsDragging(_treeView);
             var dragStartPoint = MultiSelectBehavior.GetDragStartPoint(_treeView);
 
-            // Don't start drag if already dragging
-            if (isDragging)
+            // Don't start drag if already dragging or callback already pending
+            if (isDragging || _dragCallbackPending)
                 return;
 
             // Check if drag start point is valid (was set on a valid item click)
@@ -189,47 +194,84 @@ public static class DragSourceBehavior
             if (selectedItems == null || selectedItems.Count == 0)
                 return;
 
+            // CRITICAL FIX #1: Capture mouse position BEFORE dispatcher callback
+            // MouseEventArgs becomes invalid after event handler returns, so we must capture
+            // the position synchronously while the event is still valid
+            var currentPosition = e.GetPosition(null);
+            var capturedDragStartPoint = dragStartPoint.Value; // Capture the value
+
+            // Set flag to prevent multiple callbacks from being queued
+            _dragCallbackPending = true;
+
             // Use dispatcher to ensure selection is complete (handles async selection updates)
             _treeView.Dispatcher.BeginInvoke(new Action(() =>
             {
-                // Double-check selection state after dispatcher delay
-                var currentSelectedItems = MultiSelectBehavior.GetSelectedItems(_treeView);
-                if (currentSelectedItems == null || currentSelectedItems.Count == 0)
-                    return;
-
-                // Check if mouse has moved enough to start a drag
-                var currentPosition = e.GetPosition(null);
-                var deltaX = Math.Abs(currentPosition.X - dragStartPoint.Value.X);
-                var deltaY = Math.Abs(currentPosition.Y - dragStartPoint.Value.Y);
-
-                if (deltaX > SystemParameters.MinimumHorizontalDragDistance ||
-                    deltaY > SystemParameters.MinimumVerticalDragDistance)
+                try
                 {
-                    // Begin drag and take snapshot BEFORE starting drag operation
-                    MultiSelectBehavior.BeginDrag(_treeView);
-
-                    // Raise event for FileTreeView (or future drag handler) to handle
-                    var sourceType = GetSourceType(_treeView);
-                    var dragSelection = MultiSelectBehavior.GetDragSelection(_treeView);
-                    
-                    var args = new DragStartEventArgs
+                    // CRITICAL FIX #3: Double-check drag state inside callback
+                    // Another callback might have started drag already
+                    var isDraggingNow = MultiSelectBehavior.GetIsDragging(_treeView);
+                    if (isDraggingNow)
                     {
-                        Source = _treeView,
-                        SourceType = sourceType,
-                        SelectedItems = dragSelection,
-                        MouseEventArgs = e
-                    };
+                        _dragCallbackPending = false;
+                        return;
+                    }
 
-                    DragStartRequested?.Invoke(_treeView, args);
+                    // Double-check selection state after dispatcher delay
+                    var currentSelectedItems = MultiSelectBehavior.GetSelectedItems(_treeView);
+                    if (currentSelectedItems == null || currentSelectedItems.Count == 0)
+                    {
+                        _dragCallbackPending = false;
+                        return;
+                    }
 
-                    // Mark event as handled to prevent other handlers from interfering
-                    e.Handled = true;
+                    // Check if mouse has moved enough to start a drag
+                    // Use captured position instead of accessing stale MouseEventArgs
+                    var deltaX = Math.Abs(currentPosition.X - capturedDragStartPoint.X);
+                    var deltaY = Math.Abs(currentPosition.Y - capturedDragStartPoint.Y);
+
+                    if (deltaX > SystemParameters.MinimumHorizontalDragDistance ||
+                        deltaY > SystemParameters.MinimumVerticalDragDistance)
+                    {
+                        // CRITICAL FIX #3: Check one more time before starting drag
+                        // Another thread/callback might have started drag
+                        if (MultiSelectBehavior.GetIsDragging(_treeView))
+                        {
+                            _dragCallbackPending = false;
+                            return;
+                        }
+
+                        // Begin drag and take snapshot BEFORE starting drag operation
+                        MultiSelectBehavior.BeginDrag(_treeView);
+
+                        // Raise event for FileTreeView (or future drag handler) to handle
+                        var sourceType = GetSourceType(_treeView);
+                        var dragSelection = MultiSelectBehavior.GetDragSelection(_treeView);
+                        
+                        var args = new DragStartEventArgs
+                        {
+                            Source = _treeView,
+                            SourceType = sourceType,
+                            SelectedItems = dragSelection,
+                            MousePosition = currentPosition // Pass captured Point instead of MouseEventArgs
+                        };
+
+                        DragStartRequested?.Invoke(_treeView, args);
+                    }
+                }
+                finally
+                {
+                    // Always reset pending flag
+                    _dragCallbackPending = false;
                 }
             }), System.Windows.Threading.DispatcherPriority.Input);
         }
 
         public void OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            // Reset pending flag when mouse button is released
+            _dragCallbackPending = false;
+
             // If drag was started but cancelled (mouse released before threshold or drag failed),
             // ensure drag state is cleared
             var isDragging = MultiSelectBehavior.GetIsDragging(_treeView);
