@@ -1,7 +1,8 @@
 <UserControl x:Class="EnhancedFileExplorer.UI.Controls.FileTreeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:EnhancedFileExplorer.UI.Controls">
+             xmlns:controls="clr-namespace:EnhancedFileExplorer.UI.Controls"
+             xmlns:behaviors="clr-namespace:EnhancedFileExplorer.UI.Behaviors">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -17,7 +18,6 @@
                   SelectedItemChanged="FileTree_SelectedItemChanged"
                   MouseDoubleClick="FileTree_MouseDoubleClick"
                   MouseRightButtonDown="FileTree_MouseRightButtonDown"
-                  PreviewMouseLeftButtonDown="FileTree_PreviewMouseLeftButtonDown"
                   PreviewMouseMove="FileTree_PreviewMouseMove"
                   DragOver="FileTree_DragOver"
                   Drop="FileTree_Drop"
@@ -28,7 +28,7 @@
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                    <!-- IsSelected setter removed - using attached property IsMultiSelected for visual state -->
                     <Setter Property="Padding" Value="0"/>
                     <Setter Property="Margin" Value="0"/>
                     <Setter Property="BorderThickness" Value="0"/>
@@ -123,18 +123,19 @@
                                         </MultiTrigger.Conditions>
                                         <Setter TargetName="PART_Header" Property="MinHeight" Value="19"/>
                                     </MultiTrigger>
-                                    <Trigger Property="IsSelected" Value="true">
+                                    <!-- Use attached property IsMultiSelected for multi-select visual state -->
+                                    <DataTrigger Binding="{Binding (behaviors:MultiSelectBehavior.IsMultiSelected), RelativeSource={RelativeSource Self}}" Value="True">
                                         <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
                                         <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
-                                    </Trigger>
-                                    <MultiTrigger>
-                                        <MultiTrigger.Conditions>
-                                            <Condition Property="IsSelected" Value="true"/>
-                                            <Condition Property="IsSelectionActive" Value="false"/>
-                                        </MultiTrigger.Conditions>
+                                    </DataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding (behaviors:MultiSelectBehavior.IsMultiSelected), RelativeSource={RelativeSource Self}}" Value="True"/>
+                                            <Condition Binding="{Binding IsSelectionActive, RelativeSource={RelativeSource Self}}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
                                         <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
                                         <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-                                    </MultiTrigger>
+                                    </MultiDataTrigger>
                                     <Trigger Property="IsEnabled" Value="false">
                                         <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                                     </Trigger>

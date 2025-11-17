@@ -34,49 +34,63 @@ public class FileTreeContextMenuProvider : IContextMenuProvider
     {
         var actions = new List<MenuAction>();
 
-        if (context.SelectedPath != null)
+        // Check for multi-select first
+        var selectedPaths = context.SelectedPaths?.ToList() ?? new List<string>();
+        if (selectedPaths.Count == 0 && context.SelectedPath != null)
         {
-            // Item-specific actions
-            var isDirectory = await _fileSystemService.IsDirectoryAsync(context.SelectedPath);
-            var fileName = System.IO.Path.GetFileName(context.SelectedPath);
+            selectedPaths.Add(context.SelectedPath);
+        }
 
-            // Rename action - special handling with dialog
-            actions.Add(new MenuAction
+        if (selectedPaths.Count > 0)
+        {
+            // Multi-select or single-select actions
+            var isMultiSelect = selectedPaths.Count > 1;
+            var firstPath = selectedPaths.First();
+            var isDirectory = await _fileSystemService.IsDirectoryAsync(firstPath);
+            var displayName = isMultiSelect 
+                ? $"{selectedPaths.Count} items" 
+                : System.IO.Path.GetFileName(firstPath);
+
+            // Rename action - only for single selection
+            if (!isMultiSelect)
             {
-                Label = "Rename",
-                CommandFactory = () => CreateRenameCommand(context.SelectedPath), // Placeholder - dialog handles actual command
-                ToolTip = $"Rename {fileName}",
-                AdditionalData = new Dictionary<string, object>
+                actions.Add(new MenuAction
                 {
-                    { "Path", context.SelectedPath },
-                    { "IsDirectory", isDirectory }
-                }
-            });
+                    Label = "Rename",
+                    CommandFactory = () => CreateRenameCommand(firstPath), // Placeholder - dialog handles actual command
+                    ToolTip = $"Rename {displayName}",
+                    AdditionalData = new Dictionary<string, object>
+                    {
+                        { "Path", firstPath },
+                        { "IsDirectory", isDirectory }
+                    }
+                });
 
-            actions.Add(new MenuAction { SeparatorBefore = true });
+                actions.Add(new MenuAction { SeparatorBefore = true });
+            }
 
-            // Delete action
+            // Delete action - supports multi-select
             actions.Add(new MenuAction
             {
                 Label = "Delete",
-                CommandFactory = () => new DeleteCommand(_fileOperationService, context.SelectedPath, isDirectory),
-                ToolTip = $"Delete {fileName}"
+                CommandFactory = () => CreateBulkDeleteCommand(selectedPaths),
+                ToolTip = isMultiSelect ? $"Delete {selectedPaths.Count} items" : $"Delete {displayName}"
             });
 
-            // Copy and Move actions
+            // Copy and Cut actions - support multi-select
             actions.Add(new MenuAction { SeparatorBefore = true });
             actions.Add(new MenuAction
             {
                 Label = "Copy",
-                CommandFactory = () => CreateCopyCommand(context.SelectedPath),
-                ToolTip = $"Copy {fileName}"
+                CommandFactory = () => CreateBulkCopyCommand(selectedPaths),
+                ToolTip = isMultiSelect ? $"Copy {selectedPaths.Count} items" : $"Copy {displayName}"
             });
 
             actions.Add(new MenuAction
             {
                 Label = "Cut",
-                CommandFactory = () => CreateCutCommand(context.SelectedPath),
-                ToolTip = $"Cut {fileName}"
+                CommandFactory = () => CreateBulkCutCommand(selectedPaths),
+                ToolTip = isMultiSelect ? $"Cut {selectedPaths.Count} items" : $"Cut {displayName}"
             });
 
             // Paste action if clipboard has files
@@ -86,7 +100,7 @@ public class FileTreeContextMenuProvider : IContextMenuProvider
                 actions.Add(new MenuAction
                 {
                     Label = "Paste",
-                    CommandFactory = () => CreatePasteCommand(context.SelectedPath, isDirectory),
+                    CommandFactory = () => CreatePasteCommand(firstPath, isDirectory),
                     ToolTip = "Paste items from clipboard"
                 });
             }
@@ -153,6 +167,46 @@ public class FileTreeContextMenuProvider : IContextMenuProvider
     private ICommand CreateCutCommand(string path)
     {
         return new CutCommand(_clipboardService, path);
+    }
+    
+    /// <summary>
+    /// Creates a command to copy multiple files/folders.
+    /// </summary>
+    private ICommand CreateBulkCopyCommand(IEnumerable<string> paths)
+    {
+        // For now, execute multiple copy commands sequentially
+        // TODO: Consider creating a BulkCopyCommand for better undo/redo support
+        var commandList = paths.Select(path => (ICommand)new CopyCommand(_clipboardService, path)).ToList();
+        return new BulkOperationCommand(commandList, _undoRedoManager);
+    }
+    
+    /// <summary>
+    /// Creates a command to cut multiple files/folders.
+    /// </summary>
+    private ICommand CreateBulkCutCommand(IEnumerable<string> paths)
+    {
+        // For now, execute multiple cut commands sequentially
+        // TODO: Consider creating a BulkCutCommand for better undo/redo support
+        var commandList = paths.Select(path => (ICommand)new CutCommand(_clipboardService, path)).ToList();
+        return new BulkOperationCommand(commandList, _undoRedoManager);
+    }
+    
+    /// <summary>
+    /// Creates a command to delete multiple files/folders.
+    /// Note: This method needs to be synchronous for CommandFactory, so we check
+    /// directory status synchronously using System.IO.
+    /// </summary>
+    private ICommand CreateBulkDeleteCommand(IEnumerable<string> paths)
+    {
+        var commandList = new List<ICommand>();
+        foreach (var path in paths)
+        {
+            // Check if path is a directory synchronously
+            var isDirectory = System.IO.Directory.Exists(path) && 
+                             !System.IO.File.Exists(path);
+            commandList.Add(new DeleteCommand(_fileOperationService, path, isDirectory));
+        }
+        return new BulkOperationCommand(commandList, _undoRedoManager);
     }
 
     private ICommand CreatePasteCommand(string destinationPath, bool isDirectory)

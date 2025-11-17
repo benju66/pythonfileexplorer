@@ -1,6 +1,9 @@
+using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -8,6 +11,7 @@ using EnhancedFileExplorer.Core.Interfaces;
 using EnhancedFileExplorer.Core.Models;
 using EnhancedFileExplorer.Services.ContextMenus;
 using EnhancedFileExplorer.Services.FileOperations.Commands;
+using EnhancedFileExplorer.UI.Behaviors;
 using EnhancedFileExplorer.UI.Services;
 using Microsoft.Extensions.Logging;
 
@@ -31,10 +35,11 @@ public partial class FileTreeView : UserControl
     private int _sortColumn = 0; // 0=Name, 1=Size, 2=Modified, 3=Created
     private bool _sortAscending = true;
     
-    // Drag state
-    private Point _dragStartPoint;
-    private bool _isDragging;
+    // Drag state - drag start point and dragging flag are now managed by MultiSelectBehavior
     private TreeViewItem? _currentDropTarget; // Track current drop target for visual feedback
+    
+    // Multi-select state - now managed by MultiSelectBehavior
+    private readonly ObservableCollection<FileTreeViewModel> _selectedItems = new();
 
     public event EventHandler<string>? PathSelected;
     public event EventHandler<string>? PathDoubleClicked;
@@ -45,6 +50,10 @@ public partial class FileTreeView : UserControl
         _rootItems = new ObservableCollection<FileTreeViewModel>();
         _viewModelCache = new Dictionary<string, FileTreeViewModel>(StringComparer.OrdinalIgnoreCase);
         FileTree.ItemsSource = _rootItems;
+        
+        // Enable multi-select behavior
+        MultiSelectBehavior.SetIsEnabled(FileTree, true);
+        MultiSelectBehavior.SetSelectedItems(FileTree, _selectedItems);
         
         // Handle item expanded event for lazy loading
         FileTree.AddHandler(TreeViewItem.ExpandedEvent, new RoutedEventHandler(OnItemExpanded));
@@ -91,8 +100,9 @@ public partial class FileTreeView : UserControl
 
         try
         {
-            // Preserve expansion state before clearing
+            // Preserve expansion and selection state before clearing
             var expandedPaths = GetExpandedPaths();
+            var selectedPaths = GetSelectedPaths();
             
             var items = await _fileSystemService.GetItemsAsync(path);
             
@@ -100,6 +110,7 @@ public partial class FileTreeView : UserControl
             {
                 _rootItems.Clear();
                 _viewModelCache.Clear();
+                _selectedItems.Clear();
                 
                 // Sort items based on current sort column
                 var sortedItems = SortItems(items);
@@ -113,6 +124,9 @@ public partial class FileTreeView : UserControl
                 
                 // Restore expansion state
                 RestoreExpandedPaths(expandedPaths);
+                
+                // Restore selection state
+                RestoreSelectedPaths(selectedPaths);
             });
 
             _logger?.LogInformation("Loaded directory: {Path} ({Count} items)", path, items.Count());
@@ -126,7 +140,7 @@ public partial class FileTreeView : UserControl
 
     /// <summary>
     /// Refreshes a specific directory without clearing the entire tree.
-    /// Preserves expansion state.
+    /// Preserves expansion and selection state.
     /// </summary>
     public async Task RefreshDirectoryAsync(string path)
     {
@@ -135,8 +149,9 @@ public partial class FileTreeView : UserControl
 
         try
         {
-            // Preserve expansion state
+            // Preserve expansion and selection state
             var expandedPaths = GetExpandedPaths();
+            var selectedPaths = GetSelectedPaths();
             
             var items = await _fileSystemService.GetItemsAsync(path);
             
@@ -145,6 +160,17 @@ public partial class FileTreeView : UserControl
                 // Find the ViewModel for this path
                 if (_viewModelCache.TryGetValue(path, out var viewModel))
                 {
+                    // Remove old children from cache and selection
+                    foreach (var child in viewModel.Children.ToList())
+                    {
+                        if (!string.IsNullOrEmpty(child.Path))
+                        {
+                            _viewModelCache.Remove(child.Path);
+                            _selectedItems.Remove(child);
+                            child.IsSelected = false;
+                        }
+                    }
+                    
                     // Update children
                     viewModel.Children.Clear();
                     
@@ -160,6 +186,17 @@ public partial class FileTreeView : UserControl
                 }
                 else if (string.Equals(path, _currentPath, StringComparison.OrdinalIgnoreCase))
                 {
+                    // Remove old root items from cache and selection
+                    foreach (var item in _rootItems.ToList())
+                    {
+                        if (!string.IsNullOrEmpty(item.Path))
+                        {
+                            _viewModelCache.Remove(item.Path);
+                            _selectedItems.Remove(item);
+                            item.IsSelected = false;
+                        }
+                    }
+                    
                     // Refresh root items
                     _rootItems.Clear();
                     var sortedItems = SortItems(items);
@@ -173,6 +210,9 @@ public partial class FileTreeView : UserControl
                 
                 // Restore expansion state
                 RestoreExpandedPaths(expandedPaths);
+                
+                // Restore selection state
+                RestoreSelectedPaths(selectedPaths);
             });
 
             _logger?.LogInformation("Refreshed directory: {Path} ({Count} items)", path, items.Count());
@@ -221,9 +261,58 @@ public partial class FileTreeView : UserControl
             }
         }
     }
+    
+    /// <summary>
+    /// Gets all currently selected item paths.
+    /// </summary>
+    private HashSet<string> GetSelectedPaths()
+    {
+        var selectedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        
+        foreach (var viewModel in _selectedItems.OfType<FileTreeViewModel>())
+        {
+            if (!string.IsNullOrEmpty(viewModel.Path))
+            {
+                selectedPaths.Add(viewModel.Path);
+            }
+        }
+        
+        return selectedPaths;
+    }
+    
+    /// <summary>
+    /// Restores selection state for items that were previously selected.
+    /// Uses MultiSelectBehavior's sync mechanism to ensure proper UI updates.
+    /// </summary>
+    private void RestoreSelectedPaths(HashSet<string> selectedPaths)
+    {
+        // Clear selection through the behavior's collection
+        _selectedItems.Clear();
+        
+        // Add items to selection - the behavior will sync UI automatically
+        foreach (var path in selectedPaths)
+        {
+            if (_viewModelCache.TryGetValue(path, out var viewModel))
+            {
+                _selectedItems.Add(viewModel);
+                // ViewModel.IsSelected will be updated by MultiSelectBehavior when it syncs
+            }
+        }
+        
+        // Trigger behavior sync to update UI
+        // The behavior listens to collection changes, so this should happen automatically
+        // But we can also explicitly trigger a sync if needed
+        var behavior = MultiSelectBehavior.GetSelectedItems(FileTree);
+        if (behavior != null && behavior is INotifyCollectionChanged)
+        {
+            // Collection change will trigger behavior's OnSelectedItemsCollectionChanged
+            // which will sync the UI
+        }
+    }
 
     /// <summary>
     /// Finds the TreeViewItem for a given ViewModel.
+    /// Uses ItemContainerGenerator for reliable lookup (works with virtualization).
     /// </summary>
     private TreeViewItem? FindTreeViewItemForViewModel(FileTreeViewModel viewModel)
     {
@@ -359,17 +448,33 @@ public partial class FileTreeView : UserControl
 
     private void FileTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
-        if (e.NewValue is FileTreeViewModel viewModel)
+        // For multi-select, selection is handled by MultiSelectBehavior
+        // Raise PathSelected for the first selected item
+        if (_selectedItems.Count > 0)
         {
-            PathSelected?.Invoke(this, viewModel.Path);
+            var firstSelected = _selectedItems.First();
+            PathSelected?.Invoke(this, firstSelected.Path);
         }
     }
 
     private void FileTree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (FileTree.SelectedItem is FileTreeViewModel viewModel && viewModel.IsDirectory)
+        // Find the item that was actually double-clicked, not just SelectedItem
+        var hitTestResult = VisualTreeHelper.HitTest(FileTree, e.GetPosition(FileTree));
+        var treeViewItem = FindParent<TreeViewItem>(hitTestResult.VisualHit);
+        
+        if (treeViewItem?.DataContext is FileTreeViewModel viewModel && viewModel.IsDirectory)
         {
             PathDoubleClicked?.Invoke(this, viewModel.Path);
+        }
+        else if (_selectedItems.Count > 0)
+        {
+            // Fallback: use first selected item if click target not found
+            var firstSelected = _selectedItems.First();
+            if (firstSelected.IsDirectory)
+            {
+                PathDoubleClicked?.Invoke(this, firstSelected.Path);
+            }
         }
     }
 
@@ -388,18 +493,37 @@ public partial class FileTreeView : UserControl
             string? parentPath = _currentPath;
             bool isDirectory = false;
             bool isFile = false;
+            IEnumerable<string>? selectedPaths = null;
 
             if (treeViewItem?.DataContext is FileTreeViewModel viewModel)
             {
-                selectedPath = viewModel.Path;
-                parentPath = System.IO.Path.GetDirectoryName(viewModel.Path);
-                isDirectory = viewModel.IsDirectory;
-                isFile = !isDirectory;
+                // If clicked item is in selection, use multi-select context
+                if (_selectedItems.Contains(viewModel) && _selectedItems.Count > 1)
+                {
+                    selectedPaths = _selectedItems.Select(vm => vm.Path).Where(p => !string.IsNullOrEmpty(p));
+                    parentPath = System.IO.Path.GetDirectoryName(viewModel.Path);
+                    isDirectory = viewModel.IsDirectory;
+                    isFile = !isDirectory;
+                }
+                else
+                {
+                    // Single selection or clicked item not selected
+                    selectedPath = viewModel.Path;
+                    parentPath = System.IO.Path.GetDirectoryName(viewModel.Path);
+                    isDirectory = viewModel.IsDirectory;
+                    isFile = !isDirectory;
+                }
+            }
+            else if (_selectedItems.Count > 0)
+            {
+                // Right-click on empty space but we have selections - use multi-select context
+                selectedPaths = _selectedItems.Select(vm => vm.Path).Where(p => !string.IsNullOrEmpty(p));
             }
 
             var context = new ContextMenuContext
             {
                 SelectedPath = selectedPath,
+                SelectedPaths = selectedPaths,
                 ParentPath = parentPath ?? _currentPath,
                 IsDirectory = isDirectory,
                 IsFile = isFile
@@ -503,38 +627,43 @@ public partial class FileTreeView : UserControl
 
     #region Drag and Drop
 
-    private void FileTree_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        // Store the starting point for drag detection
-        _dragStartPoint = e.GetPosition(null);
-        _isDragging = false;
-    }
+    // PreviewMouseLeftButtonDown is now handled by MultiSelectBehavior
+    // Drag start point is stored in the behavior
 
     private void FileTree_PreviewMouseMove(object sender, MouseEventArgs e)
     {
         if (_dragDropHandler == null || e.LeftButton != MouseButtonState.Pressed)
             return;
 
+        // Get drag state from behavior
+        var isDragging = MultiSelectBehavior.GetIsDragging(FileTree);
+        var dragStartPoint = MultiSelectBehavior.GetDragStartPoint(FileTree);
+
+        // Don't start drag if we're already dragging or if no items are selected
+        if (isDragging || _selectedItems.Count == 0)
+            return;
+
         // Check if mouse has moved enough to start a drag
         var currentPosition = e.GetPosition(null);
-        var deltaX = Math.Abs(currentPosition.X - _dragStartPoint.X);
-        var deltaY = Math.Abs(currentPosition.Y - _dragStartPoint.Y);
+        var deltaX = Math.Abs(currentPosition.X - dragStartPoint.X);
+        var deltaY = Math.Abs(currentPosition.Y - dragStartPoint.Y);
 
-        if (!_isDragging && 
-            (deltaX > SystemParameters.MinimumHorizontalDragDistance || 
-             deltaY > SystemParameters.MinimumVerticalDragDistance))
+        if (deltaX > SystemParameters.MinimumHorizontalDragDistance || 
+            deltaY > SystemParameters.MinimumVerticalDragDistance)
         {
             StartDragOperation(e);
         }
     }
+    
+    // Keyboard navigation and selection are now handled by MultiSelectBehavior
 
     private void StartDragOperation(MouseEventArgs e)
     {
         if (_dragDropHandler == null)
             return;
 
-        // Get selected items
-        var selectedItems = GetSelectedViewModels();
+        // Get selected items from behavior
+        var selectedItems = _selectedItems.OfType<FileTreeViewModel>().ToList();
         if (selectedItems.Count == 0)
             return;
 
@@ -553,7 +682,11 @@ public partial class FileTreeView : UserControl
         if (!canDrag.IsValid)
             return;
 
-        _isDragging = true;
+        // Mark drag as started in behavior
+        MultiSelectBehavior.SetIsDragging(FileTree, true);
+        
+        // Prevent selection changes during drag
+        // Selection is already set, so we just mark that we're dragging
 
         // Create drag data
         var dataObject = _dragDropHandler.CreateDragData(sourcePaths, isCut: false);
@@ -583,7 +716,8 @@ public partial class FileTreeView : UserControl
         }
         finally
         {
-            _isDragging = false;
+            // Clear drag state in behavior
+            MultiSelectBehavior.SetIsDragging(FileTree, false);
         }
     }
 
@@ -907,21 +1041,7 @@ public partial class FileTreeView : UserControl
         return null;
     }
 
-    private List<FileTreeViewModel> GetSelectedViewModels()
-    {
-        var selected = new List<FileTreeViewModel>();
-        
-        // Get selected item from TreeView
-        if (FileTree.SelectedItem is FileTreeViewModel viewModel)
-        {
-            selected.Add(viewModel);
-        }
-
-        // TODO: Support multi-selection in future phases
-        // For now, single selection only
-
-        return selected;
-    }
+    // Selection methods are now handled by MultiSelectBehavior
 
     private async Task<string> GenerateUniquePathAsync(string originalPath)
     {
