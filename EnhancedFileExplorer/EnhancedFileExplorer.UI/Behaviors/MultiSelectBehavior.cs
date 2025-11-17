@@ -598,10 +598,33 @@ public static class MultiSelectBehavior
             }
             else
             {
-                // Normal click: Clear and select single
-                ClearSelection();
-                AddToSelection(clickedItem);
-                _anchorItem = clickedItem;
+                // Normal click behavior:
+                // - If clicked item is NOT selected: Clear and select only that item
+                // - If clicked item IS selected AND there are multiple items selected: 
+                //   Preserve all selected items (don't clear) - this allows dragging multiple items
+                // - If clicked item IS selected AND it's the only selected item: Keep it selected
+                bool isClickedItemSelected = SelectedItems != null && SelectedItems.Contains(clickedItem);
+                bool hasMultipleSelections = SelectedItems != null && SelectedItems.Count > 1;
+                
+                if (!isClickedItemSelected)
+                {
+                    // Clicked item is not selected - clear and select only that item
+                    ClearSelection();
+                    AddToSelection(clickedItem);
+                    _anchorItem = clickedItem;
+                }
+                else if (hasMultipleSelections)
+                {
+                    // Clicked item is already selected and there are multiple selections
+                    // Preserve all selections - just update anchor for potential future range selection
+                    // This allows dragging all selected items
+                    _anchorItem = clickedItem;
+                }
+                else
+                {
+                    // Clicked item is the only selected item - no change needed
+                    _anchorItem = clickedItem;
+                }
             }
         }
 
