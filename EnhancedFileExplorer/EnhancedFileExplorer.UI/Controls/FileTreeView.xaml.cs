@@ -4,7 +4,6 @@ using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -13,7 +12,6 @@ using EnhancedFileExplorer.Core.Interfaces;
 using EnhancedFileExplorer.Core.Models;
 using EnhancedFileExplorer.Services.ContextMenus;
 using EnhancedFileExplorer.Services.FileOperations.Commands;
-using EnhancedFileExplorer.UI.Adorners;
 using EnhancedFileExplorer.UI.Behaviors;
 using EnhancedFileExplorer.UI.Helpers;
 using EnhancedFileExplorer.UI.Services;
@@ -42,8 +40,6 @@ public partial class FileTreeView : UserControl
     // Drag state - drag start point and dragging flag are now managed by MultiSelectBehavior
     private TreeViewItem? _currentDropTarget; // Track current drop target for visual feedback
     private readonly Dictionary<TreeViewItem, Border?> _borderCache = new(); // Cache for Border lookups
-    private FileTreeDragAdorner? _dragAdorner; // Drag adorner for visual feedback
-    private DispatcherTimer? _adornerUpdateTimer; // Throttle adorner position updates
     
     // Multi-select state - now managed by MultiSelectBehavior
     private readonly ObservableCollection<FileTreeViewModel> _selectedItems = new();
@@ -167,6 +163,7 @@ public partial class FileTreeView : UserControl
 
     /// <summary>
     /// Refreshes a specific directory without clearing the entire tree.
+    /// Uses incremental updates to prevent flickering and preserve scroll position.
     /// Preserves expansion and selection state.
     /// </summary>
     public async Task RefreshDirectoryAsync(string path)
@@ -180,97 +177,66 @@ public partial class FileTreeView : UserControl
             var expandedPaths = GetExpandedPaths();
             var selectedPaths = GetSelectedPaths();
             
+            // Preserve scroll position to prevent jumping
+            ScrollViewer? scrollViewer = null;
+            double scrollOffset = 0;
+            // Find ScrollViewer in visual tree (it's typically a child of TreeView)
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(FileTree); i++)
+            {
+                var child = VisualTreeHelper.GetChild(FileTree, i);
+                if (child is ScrollViewer sv)
+                {
+                    scrollViewer = sv;
+                    scrollOffset = sv.VerticalOffset;
+                    break;
+                }
+                // Check nested children
+                scrollViewer = VisualTreeHelperExtensions.FindParent<ScrollViewer>(child);
+                if (scrollViewer != null)
+                {
+                    scrollOffset = scrollViewer.VerticalOffset;
+                    break;
+                }
+            }
+            
             var items = await _fileSystemService.GetItemsAsync(path);
             
             await Dispatcher.InvokeAsync(() =>
             {
-                // Find the ViewModel for this path
-                if (_viewModelCache.TryGetValue(path, out var viewModel))
+                // Suppress UI updates during batch operations to prevent flickering
+                FileTree.IsEnabled = false;
+                try
                 {
-                    // Remove old children from cache and selection
-                    // Check if selection can be modified (not during drag)
-                    if (MultiSelectBehavior.CanModifySelection(FileTree))
+                    // Find the ViewModel for this path
+                    if (_viewModelCache.TryGetValue(path, out var viewModel))
                     {
-                        foreach (var child in viewModel.Children.ToList())
-                        {
-                            if (!string.IsNullOrEmpty(child.Path))
-                            {
-                                _viewModelCache.Remove(child.Path);
-                                _selectedItems.Remove(child);
-                                child.IsSelected = false;
-                            }
-                        }
+                        RefreshDirectoryChildrenIncremental(viewModel, items, path);
                     }
-                    else
+                    else if (string.Equals(path, _currentPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        // During drag, only remove from cache, not selection
-                        foreach (var child in viewModel.Children.ToList())
-                        {
-                            if (!string.IsNullOrEmpty(child.Path))
-                            {
-                                _viewModelCache.Remove(child.Path);
-                            }
-                        }
+                        RefreshRootItemsIncremental(items);
                     }
                     
-                    // Update children
-                    viewModel.Children.Clear();
+                    // Restore expansion state
+                    RestoreExpandedPaths(expandedPaths);
                     
-                    var sortedItems = SortItems(items);
-                    foreach (var item in sortedItems)
-                    {
-                        var childViewModel = CreateViewModel(item);
-                        viewModel.Children.Add(childViewModel);
-                        _viewModelCache[item.Path] = childViewModel;
-                    }
-                    
-                    viewModel.IsLoaded = true;
+                    // Restore selection state
+                    RestoreSelectedPaths(selectedPaths);
                 }
-                else if (string.Equals(path, _currentPath, StringComparison.OrdinalIgnoreCase))
+                finally
                 {
-                    // Remove old root items from cache and selection
-                    // Check if selection can be modified (not during drag)
-                    if (MultiSelectBehavior.CanModifySelection(FileTree))
-                    {
-                        foreach (var item in _rootItems.ToList())
-                        {
-                            if (!string.IsNullOrEmpty(item.Path))
-                            {
-                                _viewModelCache.Remove(item.Path);
-                                _selectedItems.Remove(item);
-                                item.IsSelected = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // During drag, only remove from cache, not selection
-                        foreach (var item in _rootItems.ToList())
-                        {
-                            if (!string.IsNullOrEmpty(item.Path))
-                            {
-                                _viewModelCache.Remove(item.Path);
-                            }
-                        }
-                    }
+                    FileTree.IsEnabled = true;
                     
-                    // Refresh root items
-                    _rootItems.Clear();
-                    var sortedItems = SortItems(items);
-                    foreach (var item in sortedItems)
+                    // Restore scroll position after a brief delay to allow layout to complete
+                    Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        var childViewModel = CreateViewModel(item);
-                        _rootItems.Add(childViewModel);
-                        _viewModelCache[item.Path] = childViewModel;
-                    }
+                        if (scrollViewer != null && scrollOffset > 0)
+                        {
+                            scrollViewer.ScrollToVerticalOffset(scrollOffset);
+                        }
+                    }), DispatcherPriority.Background);
                 }
-                
-                // Restore expansion state
-                RestoreExpandedPaths(expandedPaths);
-                
-                // Restore selection state
-                RestoreSelectedPaths(selectedPaths);
-            });
+            }, DispatcherPriority.Normal);
 
             _logger?.LogInformation("Refreshed directory: {Path} ({Count} items)", path, items.Count());
         }
@@ -278,6 +244,181 @@ public partial class FileTreeView : UserControl
         {
             _logger?.LogError(ex, "Error refreshing directory: {Path}", path);
         }
+    }
+
+    /// <summary>
+    /// Refreshes directory children using incremental updates to prevent flickering.
+    /// Only adds/removes items that actually changed.
+    /// </summary>
+    private void RefreshDirectoryChildrenIncremental(FileTreeViewModel viewModel, IEnumerable<FileSystemItem> newItems, string parentPath)
+    {
+        var sortedNewItems = SortItems(newItems).ToList();
+        var currentChildren = viewModel.Children.ToList();
+        
+        // Create dictionaries for efficient lookup
+        var currentChildrenByPath = currentChildren
+            .Where(c => !string.IsNullOrEmpty(c.Path))
+            .ToDictionary(c => c.Path!, StringComparer.OrdinalIgnoreCase);
+        
+        var newItemsByPath = sortedNewItems
+            .ToDictionary(i => i.Path, StringComparer.OrdinalIgnoreCase);
+        
+        // Find items to remove (exist in current but not in new)
+        var itemsToRemove = currentChildrenByPath.Keys
+            .Except(newItemsByPath.Keys, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        
+        // Find items to add (exist in new but not in current)
+        var itemsToAdd = newItemsByPath.Keys
+            .Except(currentChildrenByPath.Keys, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        
+        // Remove items that no longer exist
+        foreach (var pathToRemove in itemsToRemove)
+        {
+            if (currentChildrenByPath.TryGetValue(pathToRemove, out var childToRemove))
+            {
+                // Check if selection can be modified (not during drag)
+                if (MultiSelectBehavior.CanModifySelection(FileTree))
+                {
+                    _selectedItems.Remove(childToRemove);
+                    childToRemove.IsSelected = false;
+                }
+                _viewModelCache.Remove(pathToRemove);
+                viewModel.Children.Remove(childToRemove);
+            }
+        }
+        
+        // Add new items in sorted order
+        var insertIndex = 0;
+        foreach (var newItem in sortedNewItems)
+        {
+            if (itemsToAdd.Contains(newItem.Path))
+            {
+                // New item - create ViewModel and insert at correct position
+                var childViewModel = CreateViewModel(newItem);
+                
+                // Find correct insertion position based on sort order
+                while (insertIndex < viewModel.Children.Count)
+                {
+                    var existingChild = viewModel.Children[insertIndex];
+                    var compareResult = CompareViewModelItems(childViewModel, existingChild);
+                    if (compareResult <= 0)
+                        break;
+                    insertIndex++;
+                }
+                
+                viewModel.Children.Insert(insertIndex, childViewModel);
+                _viewModelCache[newItem.Path] = childViewModel;
+                insertIndex++;
+            }
+            else if (currentChildrenByPath.ContainsKey(newItem.Path))
+            {
+                // Existing item - update insert index for next new item
+                var existingIndex = viewModel.Children.IndexOf(currentChildrenByPath[newItem.Path]);
+                if (existingIndex >= 0)
+                    insertIndex = existingIndex + 1;
+            }
+        }
+        
+        viewModel.IsLoaded = true;
+    }
+
+    /// <summary>
+    /// Refreshes root items using incremental updates to prevent flickering.
+    /// </summary>
+    private void RefreshRootItemsIncremental(IEnumerable<FileSystemItem> newItems)
+    {
+        var sortedNewItems = SortItems(newItems).ToList();
+        
+        // Create dictionaries for efficient lookup
+        var currentItemsByPath = _rootItems
+            .Where(c => !string.IsNullOrEmpty(c.Path))
+            .ToDictionary(c => c.Path!, StringComparer.OrdinalIgnoreCase);
+        
+        var newItemsByPath = sortedNewItems
+            .ToDictionary(i => i.Path, StringComparer.OrdinalIgnoreCase);
+        
+        // Find items to remove
+        var itemsToRemove = currentItemsByPath.Keys
+            .Except(newItemsByPath.Keys, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        
+        // Find items to add
+        var itemsToAdd = newItemsByPath.Keys
+            .Except(currentItemsByPath.Keys, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        
+        // Remove items that no longer exist
+        foreach (var pathToRemove in itemsToRemove)
+        {
+            if (currentItemsByPath.TryGetValue(pathToRemove, out var itemToRemove))
+            {
+                // Check if selection can be modified (not during drag)
+                if (MultiSelectBehavior.CanModifySelection(FileTree))
+                {
+                    _selectedItems.Remove(itemToRemove);
+                    itemToRemove.IsSelected = false;
+                }
+                _viewModelCache.Remove(pathToRemove);
+                _rootItems.Remove(itemToRemove);
+            }
+        }
+        
+        // Add new items in sorted order
+        var insertIndex = 0;
+        foreach (var newItem in sortedNewItems)
+        {
+            if (itemsToAdd.Contains(newItem.Path))
+            {
+                // New item - create ViewModel and insert at correct position
+                var viewModel = CreateViewModel(newItem);
+                
+                // Find correct insertion position based on sort order
+                while (insertIndex < _rootItems.Count)
+                {
+                    var existingItem = _rootItems[insertIndex];
+                    var compareResult = CompareViewModelItems(viewModel, existingItem);
+                    if (compareResult <= 0)
+                        break;
+                    insertIndex++;
+                }
+                
+                _rootItems.Insert(insertIndex, viewModel);
+                _viewModelCache[newItem.Path] = viewModel;
+                insertIndex++;
+            }
+            else if (currentItemsByPath.ContainsKey(newItem.Path))
+            {
+                // Existing item - update insert index for next new item
+                var existingIndex = _rootItems.IndexOf(currentItemsByPath[newItem.Path]);
+                if (existingIndex >= 0)
+                    insertIndex = existingIndex + 1;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Compares two FileTreeViewModel items based on current sort settings.
+    /// Returns: negative if item1 < item2, 0 if equal, positive if item1 > item2
+    /// </summary>
+    private int CompareViewModelItems(FileTreeViewModel item1, FileTreeViewModel item2)
+    {
+        // Directories first
+        if (item1.IsDirectory != item2.IsDirectory)
+            return item1.IsDirectory ? -1 : 1;
+        
+        // Then sort by current column
+        int comparison = _sortColumn switch
+        {
+            0 => string.Compare(item1.Name, item2.Name, StringComparison.OrdinalIgnoreCase), // Name
+            1 => item1.Size.CompareTo(item2.Size), // Size
+            2 => item1.ModifiedDate.CompareTo(item2.ModifiedDate), // Modified
+            3 => item1.CreatedDate.CompareTo(item2.CreatedDate), // Created
+            _ => string.Compare(item1.Name, item2.Name, StringComparison.OrdinalIgnoreCase)
+        };
+        
+        return _sortAscending ? comparison : -comparison;
     }
 
     /// <summary>
@@ -763,11 +904,11 @@ public partial class FileTreeView : UserControl
         // Determine allowed effects
         var allowedEffects = System.Windows.DragDropEffects.Move | System.Windows.DragDropEffects.Copy;
 
-        // Create and show drag adorner with badge count
+        // Set cursor once at drag start (don't change during DragOver to prevent flickering)
+        FileTree.Cursor = Cursors.Arrow;
+
         try
         {
-            CreateDragAdorner(selectedItems);
-            
             var result = DragDrop.DoDragDrop(FileTree, wpfDataObject, allowedEffects);
             
             // Handle result if needed (e.g., clear cut clipboard)
@@ -786,9 +927,6 @@ public partial class FileTreeView : UserControl
         }
         finally
         {
-            // Clean up drag adorner
-            RemoveDragAdorner();
-            
             // Always end drag and release selection lock
             MultiSelectBehavior.EndDrag(FileTree);
         }
@@ -868,7 +1006,7 @@ public partial class FileTreeView : UserControl
             ClearDropTargetVisual();
             e.Effects = DragDropEffects.None;
             e.Handled = true;
-            FileTree.Cursor = Cursors.No;
+            // Don't change cursor - rely on visual feedback only
             return;
         }
 
@@ -900,7 +1038,7 @@ public partial class FileTreeView : UserControl
             
             e.Effects = wpfEffects;
             e.Handled = true;
-            FileTree.Cursor = requestedEffect == DragDropEffect.Copy ? Cursors.Cross : Cursors.Hand;
+            // Don't change cursor - rely on visual feedback only (prevents flickering)
             
             // Update visual feedback for valid drop target
             if (treeViewItem != null)
@@ -914,7 +1052,7 @@ public partial class FileTreeView : UserControl
             ClearDropTargetVisual();
             e.Effects = System.Windows.DragDropEffects.None;
             e.Handled = true;
-            FileTree.Cursor = Cursors.No;
+            // Don't change cursor - rely on visual feedback only
         }
     }
 
@@ -1065,91 +1203,14 @@ public partial class FileTreeView : UserControl
 
     private void FileTree_DragLeave(object sender, DragEventArgs e)
     {
+        // Restore cursor only when drag leaves (not during DragOver)
         FileTree.Cursor = Cursors.Arrow;
         ClearDropTargetVisual();
     }
 
     /// <summary>
-    /// Creates and displays the drag adorner with badge count.
-    /// </summary>
-    private void CreateDragAdorner(IReadOnlyList<FileTreeViewModel> items)
-    {
-        if (items == null || items.Count == 0)
-            return;
-
-        try
-        {
-            _dragAdorner = new FileTreeDragAdorner(FileTree, items);
-            var adornerLayer = AdornerLayer.GetAdornerLayer(FileTree);
-            if (adornerLayer != null)
-            {
-                adornerLayer.Add(_dragAdorner);
-                
-                // Setup throttled position updates
-                _adornerUpdateTimer = new DispatcherTimer(
-                    TimeSpan.FromMilliseconds(16), // ~60 FPS
-                    DispatcherPriority.Input,
-                    (s, e) => UpdateDragAdornerPosition(),
-                    Dispatcher);
-                _adornerUpdateTimer.Start();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "Failed to create drag adorner");
-        }
-    }
-
-    /// <summary>
-    /// Updates the drag adorner position based on current mouse position.
-    /// </summary>
-    private void UpdateDragAdornerPosition()
-    {
-        if (_dragAdorner == null)
-            return;
-
-        try
-        {
-            var mousePosition = Mouse.GetPosition(FileTree);
-            _dragAdorner.UpdatePosition(mousePosition);
-        }
-        catch
-        {
-            // Ignore errors during position update
-        }
-    }
-
-    /// <summary>
-    /// Removes and cleans up the drag adorner.
-    /// </summary>
-    private void RemoveDragAdorner()
-    {
-        if (_adornerUpdateTimer != null)
-        {
-            _adornerUpdateTimer.Stop();
-            _adornerUpdateTimer = null;
-        }
-
-        if (_dragAdorner != null)
-        {
-            try
-            {
-                var adornerLayer = AdornerLayer.GetAdornerLayer(FileTree);
-                adornerLayer?.Remove(_dragAdorner);
-            }
-            catch
-            {
-                // Ignore errors during cleanup
-            }
-            finally
-            {
-                _dragAdorner = null;
-            }
-        }
-    }
-
-    /// <summary>
     /// Sets visual feedback for the drop target using attached property for smooth animations.
+    /// Shows background highlight on folder row (Windows File Explorer style).
     /// </summary>
     private void SetDropTargetVisual(TreeViewItem item, bool isCopy)
     {
@@ -1161,8 +1222,10 @@ public partial class FileTreeView : UserControl
 
         _currentDropTarget = item;
 
-        // Use attached property to trigger visual state change (animations handled in XAML)
+        // Use attached properties to trigger visual state change (animations handled in XAML)
+        // Background highlight will show green for move, blue for copy
         DropTargetBehavior.SetIsDropTarget(item, true);
+        DropTargetBehavior.SetIsCopyOperation(item, isCopy);
     }
 
     /// <summary>
@@ -1172,8 +1235,9 @@ public partial class FileTreeView : UserControl
     {
         if (_currentDropTarget != null)
         {
-            // Reset attached property to trigger exit animation
+            // Reset attached properties to trigger exit animation
             DropTargetBehavior.SetIsDropTarget(_currentDropTarget, false);
+            DropTargetBehavior.SetIsCopyOperation(_currentDropTarget, false);
             _currentDropTarget = null;
         }
     }

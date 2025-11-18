@@ -20,7 +20,7 @@ public static class DropZoneHelper
     /// <param name="hitTestResult">The visual hit from HitTest</param>
     /// <param name="mousePosition">The mouse position relative to the TreeView</param>
     /// <returns>The TreeViewItem that should receive the drop, or null if none found</returns>
-    public static TreeViewItem? FindDropTarget(TreeView treeView, DependencyObject hitTestResult, Point mousePosition)
+    public static TreeViewItem? FindDropTarget(TreeView treeView, DependencyObject? hitTestResult, Point mousePosition)
     {
         if (hitTestResult == null)
             return null;

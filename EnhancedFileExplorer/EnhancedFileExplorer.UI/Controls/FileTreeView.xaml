@@ -150,13 +150,15 @@
                                         <Setter TargetName="PART_Header" Property="TextElement.Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                                     </Trigger>
                                     <!-- Drop target visual feedback using attached property -->
+                                    <!-- Shows background highlight for move operation (default) -->
                                     <DataTrigger Binding="{Binding (behaviors:DropTargetBehavior.IsDropTarget), RelativeSource={RelativeSource Self}}" Value="True">
                                         <DataTrigger.EnterActions>
                                             <BeginStoryboard>
                                                 <Storyboard>
+                                                    <!-- Subtle background highlight (Windows File Explorer style) -->
                                                     <ColorAnimation Storyboard.TargetName="Bd" 
                                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                                   To="#009600"
+                                                                   To="#E8F5E9"
                                                                    Duration="0:0:0.2">
                                                         <ColorAnimation.EasingFunction>
                                                             <QuadraticEase EasingMode="EaseOut"/>
@@ -164,7 +166,7 @@
                                                     </ColorAnimation>
                                                     <ThicknessAnimation Storyboard.TargetName="Bd"
                                                                        Storyboard.TargetProperty="BorderThickness"
-                                                                       To="2"
+                                                                       To="1"
                                                                        Duration="0:0:0.2">
                                                         <ThicknessAnimation.EasingFunction>
                                                             <QuadraticEase EasingMode="EaseOut"/>
@@ -172,7 +174,7 @@
                                                     </ThicknessAnimation>
                                                     <ColorAnimation Storyboard.TargetName="Bd"
                                                                    Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                                   To="#009600"
+                                                                   To="#4CAF50"
                                                                    Duration="0:0:0.2">
                                                         <ColorAnimation.EasingFunction>
                                                             <QuadraticEase EasingMode="EaseOut"/>
@@ -204,6 +206,44 @@
                                             </BeginStoryboard>
                                         </DataTrigger.ExitActions>
                                     </DataTrigger>
+                                    <!-- Shows blue background highlight for copy operation -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding (behaviors:DropTargetBehavior.IsDropTarget), RelativeSource={RelativeSource Self}}" Value="True"/>
+                                            <Condition Binding="{Binding (behaviors:DropTargetBehavior.IsCopyOperation), RelativeSource={RelativeSource Self}}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <MultiDataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <!-- Blue background for copy operation -->
+                                                    <ColorAnimation Storyboard.TargetName="Bd" 
+                                                                   Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                   To="#E3F2FD"
+                                                                   Duration="0:0:0.2">
+                                                        <ColorAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ColorAnimation.EasingFunction>
+                                                    </ColorAnimation>
+                                                    <ThicknessAnimation Storyboard.TargetName="Bd"
+                                                                       Storyboard.TargetProperty="BorderThickness"
+                                                                       To="1"
+                                                                       Duration="0:0:0.2">
+                                                        <ThicknessAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ThicknessAnimation.EasingFunction>
+                                                    </ThicknessAnimation>
+                                                    <ColorAnimation Storyboard.TargetName="Bd"
+                                                                   Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                                   To="#2196F3"
+                                                                   Duration="0:0:0.2">
+                                                        <ColorAnimation.EasingFunction>
+                                                            <QuadraticEase EasingMode="EaseOut"/>
+                                                        </ColorAnimation.EasingFunction>
+                                                    </ColorAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </MultiDataTrigger.EnterActions>
+                                    </MultiDataTrigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Setter.Value>

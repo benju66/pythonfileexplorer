@@ -19,6 +19,16 @@ public static class DropTargetBehavior
             typeof(DropTargetBehavior),
             new PropertyMetadata(false));
 
+    /// <summary>
+    /// Gets or sets whether this is a copy operation (true) or move operation (false).
+    /// </summary>
+    public static readonly DependencyProperty IsCopyOperationProperty =
+        DependencyProperty.RegisterAttached(
+            "IsCopyOperation",
+            typeof(bool),
+            typeof(DropTargetBehavior),
+            new PropertyMetadata(false));
+
     public static bool GetIsDropTarget(TreeViewItem item)
     {
         return (bool)item.GetValue(IsDropTargetProperty);
@@ -27,6 +37,16 @@ public static class DropTargetBehavior
     public static void SetIsDropTarget(TreeViewItem item, bool value)
     {
         item.SetValue(IsDropTargetProperty, value);
+    }
+
+    public static bool GetIsCopyOperation(TreeViewItem item)
+    {
+        return (bool)item.GetValue(IsCopyOperationProperty);
+    }
+
+    public static void SetIsCopyOperation(TreeViewItem item, bool value)
+    {
+        item.SetValue(IsCopyOperationProperty, value);
     }
 }
 
