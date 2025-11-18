@@ -21,7 +21,7 @@ public class FileTreeViewModel : INotifyPropertyChanged
     private string? _formattedModifiedDate;
     private string? _formattedCreatedDate;
 
-    public FileSystemItem Item { get; }
+    public FileSystemItem Item { get; private set; }
     public string Name => Item.Name;
     public string Path => Item.Path;
     public bool IsDirectory => Item.IsDirectory;
@@ -154,6 +154,61 @@ public class FileTreeViewModel : INotifyPropertyChanged
     public FileTreeViewModel(FileSystemItem item)
     {
         Item = item ?? throw new ArgumentNullException(nameof(item));
+    }
+
+    /// <summary>
+    /// Updates the ViewModel with new file system item data while preserving identity.
+    /// This allows the same ViewModel instance to be updated without triggering container regeneration.
+    /// </summary>
+    public void UpdateFrom(FileSystemItem newItem)
+    {
+        if (newItem == null)
+            throw new ArgumentNullException(nameof(newItem));
+
+        // Store old values to check if they changed
+        var oldName = Item.Name;
+        var oldPath = Item.Path;
+        var oldSize = Item.Size;
+        var oldModifiedDate = Item.ModifiedDate;
+        var oldCreatedDate = Item.CreatedDate;
+        var oldIsDirectory = Item.IsDirectory;
+
+        // Update Item
+        Item = newItem;
+
+        // Invalidate formatted property caches (they'll be recalculated on next access)
+        _formattedSize = null;
+        _formattedModifiedDate = null;
+        _formattedCreatedDate = null;
+
+        // Notify property changes only for properties that actually changed
+        // This minimizes UI updates and improves performance
+        if (oldName != newItem.Name)
+            OnPropertyChanged(nameof(Name));
+
+        if (oldPath != newItem.Path)
+            OnPropertyChanged(nameof(Path));
+
+        if (oldIsDirectory != newItem.IsDirectory)
+            OnPropertyChanged(nameof(IsDirectory));
+
+        if (oldSize != newItem.Size)
+        {
+            OnPropertyChanged(nameof(Size));
+            OnPropertyChanged(nameof(FormattedSize));
+        }
+
+        if (oldModifiedDate != newItem.ModifiedDate)
+        {
+            OnPropertyChanged(nameof(ModifiedDate));
+            OnPropertyChanged(nameof(FormattedModifiedDate));
+        }
+
+        if (oldCreatedDate != newItem.CreatedDate)
+        {
+            OnPropertyChanged(nameof(CreatedDate));
+            OnPropertyChanged(nameof(FormattedCreatedDate));
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

@@ -22,6 +22,7 @@ public partial class MainWindow : Window
         private readonly IUndoRedoManager _undoRedoManager;
         private readonly IFileSystemService _fileSystemService;
         private readonly IFileSystemWatcherService _fileSystemWatcherService;
+        private readonly IRefreshCoordinator _refreshCoordinator;
 
     public MainWindow(IServiceProvider serviceProvider)
     {
@@ -31,6 +32,7 @@ public partial class MainWindow : Window
             _undoRedoManager = serviceProvider.GetRequiredService<IUndoRedoManager>();
             _fileSystemService = serviceProvider.GetRequiredService<IFileSystemService>();
             _fileSystemWatcherService = serviceProvider.GetRequiredService<IFileSystemWatcherService>();
+            _refreshCoordinator = serviceProvider.GetRequiredService<IRefreshCoordinator>();
 
         InitializeComponent();
 
@@ -207,7 +209,8 @@ public partial class MainWindow : Window
             _serviceProvider.GetRequiredService<ContextMenuBuilder>(),
             _serviceProvider.GetService<IIconService>(),
             _serviceProvider.GetService<IDragDropHandler>(),
-            _undoRedoManager);
+            _undoRedoManager,
+            _refreshCoordinator);
         
         fileTreeView.PathDoubleClicked += async (s, path) =>
         {
@@ -322,10 +325,13 @@ public partial class MainWindow : Window
             var activeTab = _tabManagerService.GetActiveTab();
             if (activeTab?.CurrentPath != null)
             {
-                if (MainTabControl.SelectedItem is TabItem tabItem && tabItem.Content is FileTreeView fileTreeView)
-                {
-                    await fileTreeView.LoadDirectoryAsync(activeTab.CurrentPath);
-                }
+                // Use refresh coordinator for refresh button (High priority, immediate)
+                var request = new RefreshRequest(
+                    activeTab.CurrentPath,
+                    RefreshSource.UserRefresh,
+                    RefreshPriority.High);
+                
+                await _refreshCoordinator.RequestRefreshAsync(request);
             }
         }
         catch (Exception ex)
@@ -427,45 +433,50 @@ public partial class MainWindow : Window
         if (!e.IsSuccess)
             return;
 
-        // Refresh the tree view if the operation affects the current directory
-        RefreshTreeViewIfNeeded(e.ParentPath);
+        // Use refresh coordinator for file operation completed events
+        if (!string.IsNullOrWhiteSpace(e.ParentPath))
+        {
+            var request = new RefreshRequest(
+                e.ParentPath,
+                RefreshSource.FileOperationCompleted,
+                RefreshPriority.Normal);
+            
+            _refreshCoordinator.RequestRefreshAsync(request);
+        }
     }
 
     private void OnFileSystemChanged(object? sender, FileSystemChangedEventArgs e)
     {
-        // Debounce: Only refresh if the change affects the current directory
-        RefreshTreeViewIfNeeded(e.FullPath != null ? System.IO.Path.GetDirectoryName(e.FullPath) : null);
+        // Use refresh coordinator for FileSystemWatcher events
+        if (!string.IsNullOrWhiteSpace(e.FullPath))
+        {
+            var directoryPath = System.IO.Path.GetDirectoryName(e.FullPath);
+            if (!string.IsNullOrWhiteSpace(directoryPath))
+            {
+                var request = new RefreshRequest(
+                    directoryPath,
+                    RefreshSource.FileSystemWatcher,
+                    RefreshPriority.Low);
+                
+                _refreshCoordinator.RequestRefreshAsync(request);
+            }
+        }
     }
 
     private void OnFileSystemRenamed(object? sender, FileSystemRenamedEventArgs e)
     {
-        // Refresh for rename operations
-        RefreshTreeViewIfNeeded(e.FullPath != null ? System.IO.Path.GetDirectoryName(e.FullPath) : null);
-    }
-
-    private void RefreshTreeViewIfNeeded(string? changedPath)
-    {
-        if (changedPath == null)
-            return;
-
-        var activeTab = _tabManagerService.GetActiveTab();
-        if (activeTab?.CurrentPath != null)
+        // Use refresh coordinator for rename operations
+        if (!string.IsNullOrWhiteSpace(e.FullPath))
         {
-            // Check if the change happened in the current directory or a parent
-            var currentPath = activeTab.CurrentPath.TrimEnd('\\', '/');
-            var changedDir = changedPath.TrimEnd('\\', '/');
-            
-            if (currentPath.Equals(changedDir, StringComparison.OrdinalIgnoreCase) ||
-                currentPath.StartsWith(changedDir, StringComparison.OrdinalIgnoreCase))
+            var directoryPath = System.IO.Path.GetDirectoryName(e.FullPath);
+            if (!string.IsNullOrWhiteSpace(directoryPath))
             {
-                Dispatcher.Invoke(async () =>
-                {
-                    if (MainTabControl.SelectedItem is TabItem tabItem && 
-                        tabItem.Content is FileTreeView fileTreeView)
-                    {
-                        await fileTreeView.LoadDirectoryAsync(activeTab.CurrentPath);
-                    }
-                });
+                var request = new RefreshRequest(
+                    directoryPath,
+                    RefreshSource.FileSystemWatcher,
+                    RefreshPriority.Low);
+                
+                _refreshCoordinator.RequestRefreshAsync(request);
             }
         }
     }

@@ -10,6 +10,7 @@ using EnhancedFileExplorer.Services.UndoRedo;
 using EnhancedFileExplorer.Services.Navigation;
 using EnhancedFileExplorer.Services.TabManagement;
 using EnhancedFileExplorer.Services.ContextMenus;
+using EnhancedFileExplorer.Services.Refresh;
 using EnhancedFileExplorer.UI.Services;
 
 namespace EnhancedFileExplorer;
@@ -48,6 +49,7 @@ public static class Bootstrapper
         services.AddSingleton<IUndoRedoManager, UndoRedoManager>(); // Singleton for app-wide undo/redo
         services.AddScoped<INavigationService, NavigationService>(); // Scoped per tab
         services.AddSingleton<ITabManagerService, TabManagerService>(); // Singleton for tab management
+        services.AddSingleton<IRefreshCoordinator, RefreshCoordinatorService>(); // Singleton for app-wide refresh coordination
 
         // Context Menu Services
         // Note: ContextMenuBuilder needs IServiceProvider, so we register it after building the provider

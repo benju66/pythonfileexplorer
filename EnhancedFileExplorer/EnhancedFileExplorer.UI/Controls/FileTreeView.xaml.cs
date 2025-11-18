@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -9,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using EnhancedFileExplorer.Core.Interfaces;
+using EnhancedFileExplorer.Core.Events;
 using EnhancedFileExplorer.Core.Models;
 using EnhancedFileExplorer.Services.ContextMenus;
 using EnhancedFileExplorer.Services.FileOperations.Commands;
@@ -22,7 +24,7 @@ namespace EnhancedFileExplorer.UI.Controls;
 /// <summary>
 /// Custom TreeView control for displaying file system.
 /// </summary>
-public partial class FileTreeView : UserControl
+public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
 {
     private IFileSystemService? _fileSystemService;
     private ILogger<FileTreeView>? _logger;
@@ -31,7 +33,12 @@ public partial class FileTreeView : UserControl
     private IIconService? _iconService;
     private IDragDropHandler? _dragDropHandler;
     private IUndoRedoManager? _undoRedoManager;
+    private IRefreshCoordinator? _refreshCoordinator;
     private string _currentPath = string.Empty;
+    
+    // IFileTreeRefreshTarget implementation
+    string? IFileTreeRefreshTarget.CurrentPath => _currentPath;
+    public string InstanceId { get; } = Guid.NewGuid().ToString();
     private ObservableCollection<FileTreeViewModel> _rootItems;
     private readonly Dictionary<string, FileTreeViewModel> _viewModelCache;
     private int _sortColumn = 0; // 0=Name, 1=Size, 2=Modified, 3=Created
@@ -43,6 +50,8 @@ public partial class FileTreeView : UserControl
     
     // Multi-select state - now managed by MultiSelectBehavior
     private readonly ObservableCollection<FileTreeViewModel> _selectedItems = new();
+    
+    // Refresh coordination - now handled by RefreshCoordinatorService
 
     public event EventHandler<string>? PathSelected;
     public event EventHandler<string>? PathDoubleClicked;
@@ -84,8 +93,68 @@ public partial class FileTreeView : UserControl
         // Unsubscribe from static event to prevent memory leaks
         DragSourceBehavior.DragStartRequested -= OnDragStartRequested;
         
+        // Unregister from refresh coordinator
+        _refreshCoordinator?.UnregisterTreeView(this);
+        
         // Unsubscribe from Unloaded event
         this.Unloaded -= FileTreeView_Unloaded;
+    }
+    
+    // IFileTreeRefreshTarget implementation
+    bool IFileTreeRefreshTarget.ShouldRefresh(string path)
+    {
+        if (string.IsNullOrWhiteSpace(_currentPath) || string.IsNullOrWhiteSpace(path))
+            return false;
+        
+        try
+        {
+            var normalizedCurrentPath = Path.GetFullPath(_currentPath);
+            var normalizedPath = Path.GetFullPath(path);
+            
+            // Refresh if:
+            // 1. Exact match (same directory)
+            // 2. Path is parent of CurrentPath (change in parent affects us)
+            // Note: We DON'T refresh if path is child - FileSystemWatcher handles that
+            return normalizedCurrentPath.Equals(normalizedPath, StringComparison.OrdinalIgnoreCase) ||
+                   normalizedCurrentPath.StartsWith(
+                       normalizedPath + Path.DirectorySeparatorChar, 
+                       StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Error checking if should refresh: {Path}", path);
+            return false;
+        }
+    }
+    
+    bool IFileTreeRefreshTarget.IsPathLoaded(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+        
+        try
+        {
+            var normalizedPath = Path.GetFullPath(path);
+            
+            // Check if path is current path or in cache
+            return _currentPath.Equals(normalizedPath, StringComparison.OrdinalIgnoreCase) ||
+                   _viewModelCache.ContainsKey(normalizedPath);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Error checking if path is loaded: {Path}", path);
+            return false;
+        }
+    }
+    
+    Task IFileTreeRefreshTarget.LoadDirectoryAsync(string path)
+    {
+        return LoadDirectoryAsync(path);
+    }
+    
+    Task IFileTreeRefreshTarget.RefreshDirectoryAsync(string path, bool preserveState)
+    {
+        return RefreshDirectoryAsync(path);
     }
 
     public void Initialize(
@@ -95,7 +164,8 @@ public partial class FileTreeView : UserControl
         ContextMenuBuilder? contextMenuBuilder = null,
         IIconService? iconService = null,
         IDragDropHandler? dragDropHandler = null,
-        IUndoRedoManager? undoRedoManager = null)
+        IUndoRedoManager? undoRedoManager = null,
+        IRefreshCoordinator? refreshCoordinator = null)
     {
         _fileSystemService = fileSystemService ?? throw new ArgumentNullException(nameof(fileSystemService));
         _logger = logger;
@@ -104,6 +174,10 @@ public partial class FileTreeView : UserControl
         _iconService = iconService;
         _dragDropHandler = dragDropHandler;
         _undoRedoManager = undoRedoManager;
+        _refreshCoordinator = refreshCoordinator;
+        
+        // Register with refresh coordinator
+        _refreshCoordinator?.RegisterTreeView(this);
     }
 
     public string CurrentPath
@@ -161,10 +235,12 @@ public partial class FileTreeView : UserControl
         }
     }
 
+
     /// <summary>
     /// Refreshes a specific directory without clearing the entire tree.
     /// Uses incremental updates to prevent flickering and preserve scroll position.
     /// Preserves expansion and selection state.
+    /// Note: Debouncing is handled by RefreshCoordinatorService.
     /// </summary>
     public async Task RefreshDirectoryAsync(string path)
     {
@@ -173,6 +249,7 @@ public partial class FileTreeView : UserControl
 
         try
         {
+
             // Preserve expansion and selection state
             var expandedPaths = GetExpandedPaths();
             var selectedPaths = GetSelectedPaths();
@@ -227,14 +304,22 @@ public partial class FileTreeView : UserControl
                 {
                     FileTree.IsEnabled = true;
                     
-                    // Restore scroll position after a brief delay to allow layout to complete
+                    // Restore scroll position after layout completes
+                    // Use Loaded priority to ensure layout is complete before restoring scroll
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        if (scrollViewer != null && scrollOffset > 0)
+                        if (scrollViewer != null)
                         {
-                            scrollViewer.ScrollToVerticalOffset(scrollOffset);
+                            // Force layout update to ensure accurate scroll restoration
+                            FileTree.UpdateLayout();
+                            
+                            // Restore scroll position
+                            if (scrollOffset > 0)
+                            {
+                                scrollViewer.ScrollToVerticalOffset(scrollOffset);
+                            }
                         }
-                    }), DispatcherPriority.Background);
+                    }), DispatcherPriority.Loaded);
                 }
             }, DispatcherPriority.Normal);
 
@@ -243,6 +328,7 @@ public partial class FileTreeView : UserControl
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error refreshing directory: {Path}", path);
+            throw; // Re-throw so coordinator can handle retry
         }
     }
 
@@ -289,7 +375,7 @@ public partial class FileTreeView : UserControl
             }
         }
         
-        // Add new items in sorted order
+        // Update existing items and add new items in sorted order
         var insertIndex = 0;
         foreach (var newItem in sortedNewItems)
         {
@@ -314,8 +400,12 @@ public partial class FileTreeView : UserControl
             }
             else if (currentChildrenByPath.ContainsKey(newItem.Path))
             {
-                // Existing item - update insert index for next new item
-                var existingIndex = viewModel.Children.IndexOf(currentChildrenByPath[newItem.Path]);
+                // Existing item - update ViewModel in place to preserve identity
+                var existingViewModel = currentChildrenByPath[newItem.Path];
+                existingViewModel.UpdateFrom(newItem);
+                
+                // Update insert index for next new item
+                var existingIndex = viewModel.Children.IndexOf(existingViewModel);
                 if (existingIndex >= 0)
                     insertIndex = existingIndex + 1;
             }
@@ -365,7 +455,7 @@ public partial class FileTreeView : UserControl
             }
         }
         
-        // Add new items in sorted order
+        // Update existing items and add new items in sorted order
         var insertIndex = 0;
         foreach (var newItem in sortedNewItems)
         {
@@ -390,8 +480,12 @@ public partial class FileTreeView : UserControl
             }
             else if (currentItemsByPath.ContainsKey(newItem.Path))
             {
-                // Existing item - update insert index for next new item
-                var existingIndex = _rootItems.IndexOf(currentItemsByPath[newItem.Path]);
+                // Existing item - update ViewModel in place to preserve identity
+                var existingViewModel = currentItemsByPath[newItem.Path];
+                existingViewModel.UpdateFrom(newItem);
+                
+                // Update insert index for next new item
+                var existingIndex = _rootItems.IndexOf(existingViewModel);
                 if (existingIndex >= 0)
                     insertIndex = existingIndex + 1;
             }
@@ -1159,13 +1253,35 @@ public partial class FileTreeView : UserControl
                 e.Effects = wpfEffect;
                 e.Handled = true;
                 
-                // Refresh only the target directory to show new items, preserving expansion state
-                await RefreshDirectoryAsync(targetPath);
+                // Use refresh coordinator for drag/drop (High priority, immediate)
+                var targetRequest = new RefreshRequest(
+                    targetPath,
+                    RefreshSource.ManualDragDrop,
+                    RefreshPriority.High);
+                
+                await _refreshCoordinator!.RequestRefreshAsync(targetRequest);
+                
+                // If move operation, also refresh source directory
+                if (requestedEffect == DragDropEffect.Move && dragData.Value.FilePaths.Any())
+                {
+                    var sourcePath = Path.GetDirectoryName(dragData.Value.FilePaths.First());
+                    if (!string.IsNullOrWhiteSpace(sourcePath))
+                    {
+                        var sourceRequest = new RefreshRequest(
+                            sourcePath,
+                            RefreshSource.ManualDragDrop,
+                            RefreshPriority.High);
+                        
+                        await _refreshCoordinator.RequestRefreshAsync(sourceRequest);
+                    }
+                }
                 
                 // Ensure folder remains expanded after drop (if it was already expanded)
                 if (targetViewModel != null && targetViewModel.IsDirectory && treeViewItem != null)
                 {
-                    // Re-find the viewModel after refresh (it might be a new instance)
+                    // Wait briefly for refresh to complete, then re-find the viewModel
+                    await Task.Delay(100);
+                    
                     if (_viewModelCache.TryGetValue(targetPath, out var refreshedViewModel))
                     {
                         refreshedViewModel.IsExpanded = true;
