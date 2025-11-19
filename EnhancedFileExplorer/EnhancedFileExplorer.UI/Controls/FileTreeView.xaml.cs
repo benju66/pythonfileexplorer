@@ -235,7 +235,6 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
         }
     }
 
-
     /// <summary>
     /// Refreshes a specific directory without clearing the entire tree.
     /// Uses incremental updates to prevent flickering and preserve scroll position.
@@ -294,7 +293,8 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
                         RefreshRootItemsIncremental(items);
                     }
                     
-                    // Restore expansion state
+                    // Restore expansion state IMMEDIATELY after collection changes
+                    // This prevents the brief collapse that happens when TreeViewItems are recreated
                     RestoreExpandedPaths(expandedPaths);
                     
                     // Restore selection state
@@ -338,6 +338,9 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
     /// </summary>
     private void RefreshDirectoryChildrenIncremental(FileTreeViewModel viewModel, IEnumerable<FileSystemItem> newItems, string parentPath)
     {
+        // Capture expansion state BEFORE modifying collection
+        var wasExpanded = viewModel.IsExpanded;
+        
         var sortedNewItems = SortItems(newItems).ToList();
         var currentChildren = viewModel.Children.ToList();
         
@@ -411,6 +414,13 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
             }
         }
         
+        // Restore expansion state IMMEDIATELY after collection changes
+        // This prevents WPF from collapsing when TreeViewItems are recreated
+        if (viewModel.IsExpanded != wasExpanded)
+        {
+            viewModel.IsExpanded = wasExpanded;
+        }
+        
         viewModel.IsLoaded = true;
     }
 
@@ -419,6 +429,16 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
     /// </summary>
     private void RefreshRootItemsIncremental(IEnumerable<FileSystemItem> newItems)
     {
+        // Capture expansion states BEFORE modifying collection
+        var expandedStates = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in _rootItems)
+        {
+            if (item.IsDirectory)
+            {
+                expandedStates[item.Path] = item.IsExpanded;
+            }
+        }
+        
         var sortedNewItems = SortItems(newItems).ToList();
         
         // Create dictionaries for efficient lookup
@@ -464,6 +484,12 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
                 // New item - create ViewModel and insert at correct position
                 var viewModel = CreateViewModel(newItem);
                 
+                // Restore expansion state if it was previously expanded
+                if (expandedStates.TryGetValue(newItem.Path, out var wasExpanded))
+                {
+                    viewModel.IsExpanded = wasExpanded;
+                }
+                
                 // Find correct insertion position based on sort order
                 while (insertIndex < _rootItems.Count)
                 {
@@ -482,7 +508,16 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
             {
                 // Existing item - update ViewModel in place to preserve identity
                 var existingViewModel = currentItemsByPath[newItem.Path];
+                
+                // Preserve expansion state during update
+                var wasExpanded = existingViewModel.IsExpanded;
                 existingViewModel.UpdateFrom(newItem);
+                
+                // Restore expansion state if it changed during update
+                if (existingViewModel.IsExpanded != wasExpanded)
+                {
+                    existingViewModel.IsExpanded = wasExpanded;
+                }
                 
                 // Update insert index for next new item
                 var existingIndex = _rootItems.IndexOf(existingViewModel);
@@ -516,39 +551,104 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
     }
 
     /// <summary>
-    /// Gets all currently expanded directory paths.
+    /// Gets all currently expanded directory paths recursively from the tree structure.
     /// </summary>
     private HashSet<string> GetExpandedPaths()
     {
         var expandedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        
-        foreach (var viewModel in _viewModelCache.Values)
+        CollectExpandedPaths(_rootItems, expandedPaths);
+        return expandedPaths;
+    }
+    
+    /// <summary>
+    /// Recursively collects expanded paths from ViewModels.
+    /// </summary>
+    private void CollectExpandedPaths(IEnumerable<FileTreeViewModel> items, HashSet<string> expandedPaths)
+    {
+        foreach (var item in items)
         {
-            if (viewModel.IsDirectory && viewModel.IsExpanded)
+            if (item.IsExpanded && item.IsDirectory)
             {
-                expandedPaths.Add(viewModel.Path);
+                expandedPaths.Add(item.Path);
+                CollectExpandedPaths(item.Children, expandedPaths);
             }
         }
-        
-        return expandedPaths;
     }
 
     /// <summary>
-    /// Restores expansion state for directories that were previously expanded.
+    /// Restores expansion state for all paths that were previously expanded.
+    /// Uses two-phase restoration: ViewModel first (synchronously), then TreeViewItem after layout.
     /// </summary>
     private void RestoreExpandedPaths(HashSet<string> expandedPaths)
     {
-        foreach (var path in expandedPaths)
+        if (expandedPaths == null || expandedPaths.Count == 0)
+            return;
+        
+        // Phase 1: Restore ViewModel.IsExpanded IMMEDIATELY and SYNCHRONOUSLY
+        // This happens before WPF processes binding updates, preventing collapse
+        RestoreViewModelExpansion(_rootItems, expandedPaths);
+        
+        // Phase 2: Verify TreeViewItems match ViewModel state after layout completes
+        // This ensures TreeViewItems that were recreated get the correct expansion state
+        Dispatcher.BeginInvoke(() =>
         {
-            if (_viewModelCache.TryGetValue(path, out var viewModel) && viewModel.IsDirectory)
+            FileTree.UpdateLayout();
+            RestoreTreeViewItemExpansion(FileTree, expandedPaths);
+        }, DispatcherPriority.Loaded);
+    }
+    
+    /// <summary>
+    /// Recursively restores ViewModel.IsExpanded property.
+    /// </summary>
+    private void RestoreViewModelExpansion(IEnumerable<FileTreeViewModel> items, HashSet<string> expandedPaths)
+    {
+        foreach (var item in items)
+        {
+            if (item.IsDirectory)
             {
-                viewModel.IsExpanded = true;
-                
-                // Also find and expand the corresponding TreeViewItem
-                var treeViewItem = FindTreeViewItemForViewModel(viewModel);
-                if (treeViewItem != null)
+                var shouldBeExpanded = expandedPaths.Contains(item.Path);
+                if (item.IsExpanded != shouldBeExpanded)
                 {
-                    treeViewItem.IsExpanded = true;
+                    item.IsExpanded = shouldBeExpanded;
+                }
+                
+                // Recursively restore children if this item is expanded
+                if (item.IsExpanded)
+                {
+                    RestoreViewModelExpansion(item.Children, expandedPaths);
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Restores TreeViewItem.IsExpanded by traversing the visual tree.
+    /// This ensures TreeViewItems match their ViewModel state after collection changes.
+    /// </summary>
+    private void RestoreTreeViewItemExpansion(ItemsControl parent, HashSet<string> expandedPaths)
+    {
+        if (parent == null || expandedPaths == null || expandedPaths.Count == 0)
+            return;
+        
+        var generator = parent.ItemContainerGenerator;
+        foreach (var item in parent.Items)
+        {
+            if (item is FileTreeViewModel viewModel && viewModel.IsDirectory)
+            {
+                var container = generator.ContainerFromItem(item) as TreeViewItem;
+                if (container != null)
+                {
+                    var shouldBeExpanded = expandedPaths.Contains(viewModel.Path);
+                    if (container.IsExpanded != shouldBeExpanded)
+                    {
+                        container.IsExpanded = shouldBeExpanded;
+                    }
+                    
+                    // Recursively restore children if this container is expanded
+                    if (container.IsExpanded)
+                    {
+                        RestoreTreeViewItemExpansion(container, expandedPaths);
+                    }
                 }
             }
         }
@@ -560,15 +660,13 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
     private HashSet<string> GetSelectedPaths()
     {
         var selectedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        
-        foreach (var viewModel in _selectedItems.OfType<FileTreeViewModel>())
+        foreach (var selectedItem in _selectedItems)
         {
-            if (!string.IsNullOrEmpty(viewModel.Path))
+            if (!string.IsNullOrWhiteSpace(selectedItem.Path))
             {
-                selectedPaths.Add(viewModel.Path);
+                selectedPaths.Add(selectedItem.Path);
             }
         }
-        
         return selectedPaths;
     }
     
@@ -577,6 +675,89 @@ public partial class FileTreeView : UserControl, IFileTreeRefreshTarget
     /// Uses MultiSelectBehavior's sync mechanism to ensure proper UI updates.
     /// </summary>
     private void RestoreSelectedPaths(HashSet<string> selectedPaths)
+    {
+        if (selectedPaths == null || selectedPaths.Count == 0)
+            return;
+        
+        // Prevent selection changes during drag
+        if (!MultiSelectBehavior.CanModifySelection(FileTree))
+            return;
+        
+        // Restore selection by finding ViewModels and setting IsSelected
+        RestoreViewModelSelection(_rootItems, selectedPaths);
+        
+        // Use MultiSelectBehavior to restore visual selection state after layout
+        Dispatcher.BeginInvoke(() =>
+        {
+            FileTree.UpdateLayout();
+            RestoreTreeViewItemSelection(FileTree, selectedPaths);
+        }, DispatcherPriority.Loaded);
+    }
+    
+    /// <summary>
+    /// Recursively restores ViewModel.IsSelected property.
+    /// </summary>
+    private void RestoreViewModelSelection(IEnumerable<FileTreeViewModel> items, HashSet<string> selectedPaths)
+    {
+        foreach (var item in items)
+        {
+            var shouldBeSelected = selectedPaths.Contains(item.Path);
+            if (item.IsSelected != shouldBeSelected)
+            {
+                item.IsSelected = shouldBeSelected;
+                if (shouldBeSelected && !_selectedItems.Contains(item))
+                {
+                    _selectedItems.Add(item);
+                }
+                else if (!shouldBeSelected && _selectedItems.Contains(item))
+                {
+                    _selectedItems.Remove(item);
+                }
+            }
+            
+            // Recursively restore children
+            RestoreViewModelSelection(item.Children, selectedPaths);
+        }
+    }
+    
+    /// <summary>
+    /// Restores TreeViewItem selection state using MultiSelectBehavior.
+    /// </summary>
+    private void RestoreTreeViewItemSelection(ItemsControl parent, HashSet<string> selectedPaths)
+    {
+        if (parent == null || selectedPaths == null || selectedPaths.Count == 0)
+            return;
+        
+        var generator = parent.ItemContainerGenerator;
+        foreach (var item in parent.Items)
+        {
+            if (item is FileTreeViewModel viewModel)
+            {
+                var container = generator.ContainerFromItem(item) as TreeViewItem;
+                if (container != null)
+                {
+                    var shouldBeSelected = selectedPaths.Contains(viewModel.Path);
+                    var isCurrentlySelected = MultiSelectBehavior.GetIsMultiSelected(container);
+                    
+                    if (isCurrentlySelected != shouldBeSelected)
+                    {
+                        MultiSelectBehavior.SetIsMultiSelected(container, shouldBeSelected);
+                    }
+                }
+            }
+            
+            // Recursively restore children
+            if (parent is TreeViewItem treeViewItem && treeViewItem.Items.Count > 0)
+            {
+                RestoreTreeViewItemSelection(treeViewItem, selectedPaths);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Legacy method - kept for backward compatibility but now uses improved implementation.
+    /// </summary>
+    private void RestoreSelectedPathsLegacy(HashSet<string> selectedPaths)
     {
         // Prevent selection changes during drag
         if (!MultiSelectBehavior.CanModifySelection(FileTree))
